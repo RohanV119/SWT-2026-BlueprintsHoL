@@ -1,0 +1,76 @@
+-- ============================================================================
+-- ORGANIZATION ACCOUNT DECISION
+-- ============================================================================
+-- This script documents the Organization Account decision and verifies
+-- prerequisites. Actual account creation is performed in the next step
+-- (Create Organization Account) if enabled.
+-- ============================================================================
+
+{%- if enable_org_account == "Yes" %}
+-- ============================================================================
+-- DECISION: CREATE ORGANIZATION ACCOUNT
+-- ============================================================================
+-- You have chosen to create an Organization Account for centralized management.
+-- The next step will configure and create the account.
+-- ============================================================================
+
+-- ============================================================================
+-- VERIFY PREREQUISITES
+-- ============================================================================
+-- Before creating an Organization Account, verify your current account setup
+
+USE ROLE ACCOUNTADMIN;
+
+-- Check your current organization name
+SELECT CURRENT_ORGANIZATION_NAME() AS organization_name;
+
+-- Verify your account edition (must be Enterprise or higher)
+-- Note: Account edition is visible in Snowsight under Admin > Accounts,
+-- or via SHOW ORGANIZATION ACCOUNTS (requires ORGADMIN role).
+SELECT CURRENT_ACCOUNT() AS account,
+       CURRENT_ORGANIZATION_NAME() AS organization_name;
+
+-- Check if ORGADMIN role exists (may not exist yet in all accounts)
+SHOW ROLES LIKE 'ORGADMIN';
+
+/*
+============================================================================
+NEXT STEP
+============================================================================
+In the next step (Create Organization Account), you will:
+1. Specify the Organization Account Name
+2. Configure the initial administrator credentials
+3. Select the Snowflake edition and cloud region
+4. Execute the CREATE ORGANIZATION ACCOUNT command
+============================================================================
+*/
+
+{%- else %}
+-- ============================================================================
+-- DECISION: ORGANIZATION ACCOUNT NOT ENABLED
+-- ============================================================================
+-- You have chosen not to create an Organization Account at this time.
+-- ============================================================================
+
+/*
+Decision: Organization Account will NOT be created.
+
+Implications:
+- Single-account deployment without centralized management features
+- Organization-level features are not available
+- Can be enabled later if you select or upgrade to Snowflake edition Enterprise or higher
+
+Note: For multi-account strategies, an Organization Account is REQUIRED.
+If you plan to expand to multiple accounts in the future, consider 
+enabling the Organization Account for seamless expansion.
+*/
+
+-- Verify current account configuration for standalone operation
+-- Note: Account edition is visible in Snowsight under Admin > Accounts,
+-- or via SHOW ORGANIZATION ACCOUNTS (requires ORGADMIN role).
+SELECT 
+  CURRENT_ACCOUNT() AS current_account,
+  CURRENT_ACCOUNT_NAME() AS account_name,
+  CURRENT_ORGANIZATION_NAME() AS organization_name;
+
+{%- endif %}

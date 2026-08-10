@@ -1,0 +1,43 @@
+# Configure Organization Name for Connectivity
+
+## Overview
+
+This section documents how the organization name is configured in Snowflake Account Identifiers. Account Identifiers are critical components of URLs and programmatic connections to Snowflake. 
+
+**⚠️ Important:** Once your organization name is in use with users and systems securely connecting to Snowflake using your Account Identifiers and URLs, it is difficult to change the organization name in all the places that would require the change. For this reason, we strongly encourage customers to plan ahead and ensure that their Organization Name meets their future connectivity needs up front.
+
+## Decision Summary
+
+| Configuration | Value |
+|---------------|-------|
+| **Organization Name** | `{{ snowflake_org_name | upper }}` |
+
+## Account Identifier Structure
+
+Your Snowflake Account Identifiers will follow this pattern:
+
+**URL Structure:**
+```
+
+https://{{ snowflake_org_name | upper }}-<account_name>.snowflakecomputing.com
+
+```
+
+**Example URLs:**
+| Account Purpose | Account Name | Full URL |
+|-----------------|--------------|----------|
+| Production | `prod` | `https://{{ snowflake_org_name | upper }}-prod.snowflakecomputing.com` |
+| Development | `dev` | `https://{{ snowflake_org_name | upper }}-dev.snowflakecomputing.com` |
+| Organization Account | `org` | `https://{{ snowflake_org_name | upper }}-org.snowflakecomputing.com` |
+| Finance Domain | `finance` | `https://{{ snowflake_org_name | upper }}-finance.snowflakecomputing.com` |
+
+## Connectivity Reference
+
+All users and systems connecting to Snowflake will use these Account Identifiers:
+
+| Connection Method | Format |
+|-------------------|--------|
+| Web UI Access | `https://{{ snowflake_org_name | upper }}-<account_name>.snowflakecomputing.com` |
+| Snowflake CLI / SnowSQL | `{{ snowflake_org_name | upper }}-<account_name>` |
+| Drivers & Connectors | Account identifier: `{{ snowflake_org_name | upper }}-<account_name>` |
+| Third-party Integrations | Use account identifier in partner tool configuration |

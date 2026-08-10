@@ -1,0 +1,84 @@
+## SCIM Integration Configuration
+
+### Configuration Summary
+
+| Setting | Value |
+|---------|-------|
+| **Identity Provider** | {{ identity_provider }} |
+| **Integration Name** | `{{ scim_integration_name | upper }}` |
+| **Provisioner Role** | `{{ scim_provisioner_role | upper }}` |
+
+### SCIM Network Policy
+
+{%- if scim_allowed_ips | length > 0 %}
+
+A network policy will be created to restrict SCIM access to these IP addresses:
+
+| IP Address/CIDR |
+|-----------------|
+{%- for ip in scim_allowed_ips %}
+| `{{ ip }}` |
+{%- endfor %}
+
+{%- if identity_provider in ["Microsoft Entra ID (Azure AD)", "Okta"] %}
+
+> **Note:** {{ identity_provider }} outbound IP addresses change over time (Azure AD: weekly; Okta: unpredictably). This static list will require periodic maintenance to avoid SCIM provisioning failures. The SCIM bearer token alone is sufficient for authentication — consider removing these IPs to reduce operational overhead.
+
+{%- endif %}
+
+{%- else %}
+
+No SCIM network policy will be created. The SCIM bearer token provides sufficient authentication.{% if identity_provider in ["Microsoft Entra ID (Azure AD)", "Okta"] %} For {{ identity_provider }}, this is the recommended approach — their outbound IP addresses change over time, making static IP lists difficult to maintain reliably.{% endif %}
+
+{%- endif %}
+
+### SCIM Endpoint URL
+
+Configure your IdP with this endpoint URL:
+
+`https://{{ snowflake_org_name | lower }}-{% if account_name_prefix | upper != "NONE" %}{{ account_name_prefix | lower }}_{% endif %}{% if org_account_name | upper != "NONE" %}{{ org_account_name | lower }}{% else %}{{ snowflake_org_name | lower }}{% endif %}.snowflakecomputing.com/scim/v2/`
+
+### What Happens After Running the SQL
+
+1. A SCIM provisioner role (`{{ scim_provisioner_role | upper }}`) will be created
+2. A network policy for SCIM access will be created
+3. The SCIM security integration will be created
+4. A SCIM token will be generated - **copy this to your IdP configuration**
+
+### Security Considerations
+
+- The SCIM token is sensitive - store it securely in your IdP
+- The network policy restricts SCIM access to only your IdP's IP addresses
+- Users provisioned via SCIM will have `LOGIN_NAME` set to their IdP username
+- Deprovisioning in the IdP will disable (not delete) users in Snowflake
+
+### IdP Configuration Steps
+
+{%- if identity_provider == "Okta" %}
+**In Okta:**
+1. Add the Snowflake application from the Okta Application Catalog
+2. Configure SCIM provisioning in the app settings
+3. Enter the SCIM endpoint URL and token from the SQL output
+4. Enable provisioning features (Create, Update, Deactivate)
+5. Assign users/groups to the Snowflake application
+
+See: [SCIM with Okta](https://docs.snowflake.com/en/user-guide/scim-okta)
+{%- elif identity_provider == "Microsoft Entra ID (Azure AD)" %}
+**In Microsoft Entra ID:**
+1. Add Snowflake from the Azure AD Enterprise Applications gallery
+2. Configure automatic provisioning
+3. Enter the SCIM endpoint URL and token from the SQL output
+4. Test the connection and save
+5. Assign users/groups to the Snowflake application
+
+See: [SCIM with Azure AD](https://docs.snowflake.com/en/user-guide/scim-azure)
+{%- else %}
+**In your IdP:**
+1. Configure a SCIM 2.0 application for Snowflake
+2. Enter the SCIM endpoint URL from the SQL output
+3. Configure bearer token authentication with the generated token
+4. Map user attributes (email, first name, last name, etc.)
+5. Enable provisioning and assign users
+
+See: [SCIM with Generic IdP](https://docs.snowflake.com/en/user-guide/scim-generic)
+{%- endif %}

@@ -1,0 +1,39 @@
+## Organization Network Configuration
+
+### Using Replicated Network Rules
+
+This account will use the network rules replicated from your Organization Account via the Infrastructure database replica.
+
+| Setting | Value |
+|---------|-------|
+| **Replicated Database** | `{{ platform_database_name | upper }}` |
+| **Rules Schema** | `{{ governance_name | upper }}` |
+
+### Replicated Network Rules Available
+
+The following network rules from your Organization Account are available:
+
+**Allowed Rules:**
+{%- for rule in allowed_network_rules %}
+- `{{ platform_database_name | upper }}.{{ governance_name | upper }}.{{ rule.rule_name | upper }}`
+{%- endfor %}
+
+{%- if blocked_network_rules | length > 0 %}
+**Blocked Rules:**
+{%- for rule in blocked_network_rules %}
+- `{{ platform_database_name | upper }}.{{ governance_name | upper }}.{{ rule.rule_name | upper }}`
+{%- endfor %}
+{%- endif %}
+
+### Network Policy
+
+A network policy will be created in this account that references the replicated rules:
+
+**Policy Name:** `{{ new_account_name | upper }}_NETWORK_POLICY`
+
+### Benefits of This Approach
+
+✅ **Consistency**: Same IP allowlists as all other accounts
+✅ **Centralized Updates**: Changes in the Organization Account replicate automatically
+✅ **No Duplicate Configuration**: Rules managed in one place
+✅ **Audit Trail**: Clear lineage back to organization standards

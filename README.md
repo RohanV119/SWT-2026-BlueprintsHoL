@@ -1,0 +1,441 @@
+# Introduction
+
+### Blueprints  
+*Expert-backed guidance for Snowflake setup*    
+Blueprints are step-by-step workflows built by Snowflake SMEs that guide you through environment configuration. Best practices are built into every blueprint—so you can configure with confidence that it follows proven patterns and will scale with your needs.
+
+### Blueprint Manager  
+*Self-service platform configuration, guided by experts*    
+Blueprint Manager walks you through each decision, captures your answers, and generates the SQL and configuration tailored to your environment. No guesswork, no waiting for help—just clear direction to get productive faster.
+
+## Why Blueprints?  
+
+Expert-backed guidance so you can configure your environment knowing it follows best practices and will scale with your needs.
+- **Confidence** - Expert-defined workflows ensure you're doing it right
+- **Best Practices** - Start with an architecture that scales
+- **Speed** - Get productive faster with guided setup
+- **Self-Service** - Move at your own pace
+
+## How does it work?
+
+**Blueprints**  
+Blueprints are templates for best-practice Snowflake implementation and setup containing expert guidance, prescriptive configurations, validation rules, and generation logic. Blueprints will prompt you for business requirements via Cortex Code, then generate ready-to-execute SQL scripts to implement best-practice configurations, and provide curated documentation recording your decisions.  
+
+**Cortex Code Skills**  
+Blueprints run inside Cortex Code via the $blueprint-builder skill and the $best-practices-skill. Skills are instructions that tell Cortex Code how to navigate and execute Blueprints, and guide the AI to the right best practices based on your inputs to ensure correct outputs for your specific requirements.
+
+*Think of Blueprints as the "cookbook" containing all the implementation recipes and expertise, and Skills as the "index" that helps Cortex Code find and follow the right recipe for your needs.*
+
+<img width="6800" height="1200" alt="Blueprint Manager Cortex Code Overview" src="https://github.com/user-attachments/assets/6434d217-395d-4092-916a-e32944b41f39" />
+
+# Blueprint Manager
+
+This repository contains infrastructure-as-code templates and blueprints for setting up Snowflake blueprints.
+
+## Structure
+
+- `definitions/` - Question definitions for configuration
+- `blueprints/` - Available blueprint configurations
+- `scripts/` - Utility scripts for rendering templates
+- `projects/` - Project workspaces for organizing answers and outputs
+- `output/` - Generated infrastructure code and documentation
+
+## Setting Up Your Blueprint using Snowflake Cortex (Recommended)
+
+The easiest way to configure your Snowflake Blueprint is using the **Blueprint Builder** skill with Snowflake Cortex. This provides a guided, interactive experience.
+
+### Getting Started
+
+0. Pre-requisite: Cortex Code CLI
+
+In order to get the guided Cortex Code experience you will first need to setup the command line interface on your machine. Those instructions can be found here: https://docs.snowflake.com/LIMITEDACCESS/cortex-code/cortex-code-overview.
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/Snowflake-Labs/blueprint-manager.git
+cd blueprint-manager
+```
+
+2. **Start Cortex CLI:**
+
+```bash
+cortex
+```
+
+3. **Launch the Blueprint Builder:**
+
+```bash
+/blueprints:build platform-foundation-setup
+```
+
+### How it works:
+
+1. **Choose your approach:**
+   - **Option A:** Provide a description of your organization (size, use case, security requirements, etc.) and Cortex will intelligently configure as many settings as possible
+   - **Option B:** Go through each question step-by-step with full guidance
+
+2. **Review the configuration** — Cortex shows you:
+   - ✅ Questions it answered automatically (with reasoning)
+   - ❓ Questions that need your input (account names, emails, etc.)
+   - ⚠️ Questions that need more context from you
+
+3. **Generate SQL** — once your answers are complete, Cortex runs the render script to produce ready-to-execute Snowflake SQL
+
+### Benefits:
+- No need to understand the answer file format
+- Intelligent defaults based on your organization profile
+- Clear explanation of each configuration decision
+- Validation and guidance throughout the process
+
+## Cortex Code Commands
+
+The following commands are available when using Cortex Code in this repository:
+
+### Core Commands
+
+| Command | Description |
+|---------|-------------|
+| `/blueprints:list` | List available blueprints with metadata |
+| `/blueprints:describe <name>` | Show blueprint details including task/step tree |
+| `/blueprints:build <name>` | Start the interactive blueprint building process |
+| `/blueprints:validate <file> --blueprint <name>` | Check answer file completeness |
+| `/blueprints:render <file> --blueprint <name>` | Generate SQL/Terraform/Documentation from answers |
+
+### Project Management
+
+| Command | Description |
+|---------|-------------|
+| `/blueprints:projects-list` | List existing projects |
+| `/blueprints:projects-create <name>` | Create a new project directory structure |
+| `/blueprints:projects-describe <name>` | Show project status (answers, outputs, history) |
+
+### Answer File Operations
+
+| Command | Description |
+|---------|-------------|
+| `/blueprints:answers-init <name>` | Generate a skeleton answer file with all questions |
+| `/blueprints:answers-validate <file>` | Check for missing/invalid values |
+| `/blueprints:answers-diff <file1> <file2>` | Compare two answer files |
+
+### Example Workflow
+
+```bash
+# 1. List available blueprints
+/blueprints:list
+
+# 2. Create a project for your work
+/blueprints:projects-create my-company
+
+# 3. Start building interactively
+/blueprints:build platform-foundation-setup --project my-company
+
+# 4. Or generate a skeleton and fill manually
+/blueprints:answers-init platform-foundation-setup --project my-company
+
+# 5. Validate your answers
+/blueprints:validate answers.yaml --blueprint platform-foundation-setup
+
+# 6. Generate SQL output
+/blueprints:render answers.yaml --blueprint platform-foundation-setup --project my-company
+```
+
+## Skills
+
+This repository includes two Cortex Code skills that are automatically activated:
+
+### Blueprint Builder
+
+Guides users through constructing answer files interactively. Triggered when you:
+- Ask to set up or configure a blueprint
+- Want to create your Snowflake environment
+- Need help with blueprint configuration
+
+### Snowflake Best Practices
+
+Provides curated guidance from Snowflake SMEs. Triggered when you ask about:
+- Best practices or recommendations
+- Account strategy, RBAC, security patterns
+- Cost management and resource monitoring
+- Naming conventions and architecture decisions
+
+## Schema Reference
+
+### Blueprint `meta.yaml` Schema
+
+Each blueprint contains a `meta.yaml` file that defines its structure. The schema supports both flat (steps-only) and nested (tasks with steps) formats for backwards compatibility.
+
+#### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `blueprint_id` | string | Unique identifier for the blueprint |
+| `name` | string | Display name for the blueprint |
+| `summary` | string | Brief description of the blueprint's purpose |
+| `overview` | string | Detailed description of what the blueprint accomplishes |
+| `steps` | list | List of step slugs (references to step directories) |
+
+#### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `is_repeatable` | boolean | Whether the blueprint can be run multiple times (default: false) |
+| `tasks` | list | Groupings of steps with metadata (see below) |
+
+#### Tasks Structure
+
+The `tasks` field enables grouping steps into logical units with explicit metadata. This provides context about what each group accomplishes, who should perform it, and what prerequisites are required.
+
+```yaml
+tasks:
+  - slug: string              # Unique identifier for the task (e.g., "platform-planning")
+    title: string             # Display title for the task
+    summary: string           # Short summary of what will be accomplished
+    role_requirements:        # Snowflake role requirements
+      - string
+    external_requirements:    # External requirements (SSO, data integration sources, etc.)
+      - string
+    personas:                 # Personas/roles needed for this task
+      - string
+    description: string       # Optional detailed content for the Skill and future UI
+    steps:                    # Steps that belong to this task
+      - slug: string          # Reference to step slug in the blueprint's steps list
+        title: string         # Display title for the step within this task
+```
+
+#### Example: Minimal Blueprint (flat, without tasks)
+
+```yaml
+blueprint_id: blueprint_abc123
+name: Simple Setup
+summary: Basic configuration workflow
+overview: A straightforward setup process.
+steps:
+  - step-one
+  - step-two
+  - step-three
+```
+
+#### Example: Full Blueprint (with tasks)
+
+```yaml
+blueprint_id: blueprint_def456
+name: Platform Foundation Setup
+summary: Establish core platform infrastructure
+overview: Complete platform setup workflow.
+is_repeatable: false
+steps:
+  - determine-account-strategy
+  - configure-organization-name
+  - create-infrastructure-database
+tasks:
+  - slug: platform-foundation
+    title: Platform Foundation
+    summary: Define account strategy and create shared infrastructure.
+    external_requirements:
+      - Snowflake account (trial or provisioned)
+      - Organization information
+    personas:
+      - Platform Administrator
+      - Cloud/Infrastructure Team
+    role_requirements:
+      - ORGADMIN or ACCOUNTADMIN privileges
+    steps:
+      - slug: determine-account-strategy
+        title: Determine Account Strategy
+      - slug: configure-organization-name
+        title: Configure Organization Name
+      - slug: create-infrastructure-database
+        title: Create Infrastructure Database
+```
+
+#### Task Content Files
+
+Task overview content can also be stored in separate markdown files using a flat directory structure:
+
+```
+blueprints/<blueprint-name>/
+├── meta.yaml
+├── overview.md
+├── tasks/
+│   ├── platform-planning.md      # Flat structure (recommended)
+│   ├── security-setup.md
+│   └── cost-management.md
+└── <step-slug>/
+    ├── overview.md
+    ├── code.sql.jinja
+    └── dynamic.md.jinja
+```
+
+The task markdown files can include additional details like time estimates, key decisions, and deliverables that supplement the structured fields in `meta.yaml`.
+
+## Manual Configuration (Alternative)
+
+If you prefer to manage files directly without the guided experience:
+
+### 1. Choose a blueprint
+
+```bash
+ls blueprints/
+```
+
+Review the blueprint's `meta.yaml` and step `overview.md` files to understand what will be configured.
+
+### 2. Configuring the projects directory
+
+By default, rendered project artifacts are written to `projects/` under the current working directory. The `blueprints/` and `definitions/` directories are always resolved script-relatively. If you want to write project outputs somewhere else, override the projects directory using one of:
+
+1. **`--projects-dir <path>`** CLI flag (highest priority)
+2. **`BLUEPRINT_MANAGER_PROJECTS_DIR`** environment variable
+3. **`<cwd>/projects`** (current working directory, default)
+
+For example:
+
+```bash
+# Using --projects-dir flag
+python scripts/render_journey.py answers.yaml \
+  --blueprint platform-foundation-setup --lang sql \
+  --projects-dir /path/to/projects
+
+# Using the environment variable
+export BLUEPRINT_MANAGER_PROJECTS_DIR=/path/to/projects
+python scripts/render_journey.py answers.yaml \
+  --blueprint platform-foundation-setup --lang sql
+```
+
+### 3. Create a project and answer file
+
+Create a project directory structure:
+
+```bash
+# Create project structure
+mkdir -p projects/my-project/answers/<blueprint_id>
+mkdir -p projects/my-project/output/iac/sql
+mkdir -p projects/my-project/output/documentation
+```
+
+Create an answer file (e.g., `projects/my-project/answers/<blueprint_id>/my_answers.yaml`) and provide values for each question. See `definitions/questions.yaml` for question details and valid options.
+
+### 4. Generate infrastructure code
+
+```bash
+python scripts/render_journey.py \
+  projects/my-project/answers/<blueprint_id>/my_answers.yaml \
+  --blueprint <blueprint_id> \
+  --project my-project \
+  --lang sql
+```
+
+**Options:**
+- `--lang sql` or `--lang terraform` — choose output language
+- `--project <name>` — project name for organizing outputs
+- `--skip-guidance` — skip generating documentation
+- `--pdf` — write a PDF deliverable alongside guidance (not with `--skip-guidance`)
+- `--projects-dir <path>` — projects directory (see [Configuring the projects directory](#2-configuring-the-projects-directory))
+
+**Output:**
+- SQL/Terraform files in `projects/<project>/output/iac/sql/`
+- Documentation in `projects/<project>/output/documentation/`
+
+### 5. Execute the generated code
+
+Review the generated SQL file, then execute it in your Snowflake worksheet. The SQL is idempotent — safe to run multiple times.
+
+## Step-level Implementation Tracking (QUERY_TAG)
+
+Rendered SQL journeys are automatically annotated with Snowflake
+`QUERY_TAG`s so that execution of Blueprint-generated SQL can be detected
+in query history. This is applied **only to SQL output**; Terraform output
+is unaffected.
+
+For every rendered step the renderer wraps the step's SQL with a
+matching SET/UNSET pair:
+
+```sql
+ALTER SESSION SET QUERY_TAG = '{"src":"blueprints","bp":"<blueprint_id>","step":"<step_slug>"}';
+-- ... step SQL ...
+ALTER SESSION UNSET QUERY_TAG;
+```
+
+so each step's tag is scoped to just that step's queries and does not
+bleed into unrelated queries the customer runs later in the same
+session.
+
+### Tag schema
+
+The tag value is a compact single-line JSON object with exactly these
+keys (total payload is kept well under Snowflake's 2 KB `QUERY_TAG`
+limit):
+
+| key    | meaning                                               |
+|--------|-------------------------------------------------------|
+| `src`  | source identifier, always `"blueprints"` for this repo |
+| `bp`   | blueprint identifier (from `meta.yaml` `blueprint_id`, falling back to blueprint directory name) |
+| `step` | step identifier (step slug) within the blueprint       |
+
+> `run_id` is intentionally **not** included. Chronological ordering in
+> query history is sufficient for the current analysis. If per-run
+> attribution is later required it can be added as an additional short
+> key.
+
+### Querying executions
+
+To find Blueprint-executed steps in the usual job/query-history views,
+use the `TAG` column (e.g. `job_etl_v` / `CXE_JOB_RAW_V_LAST_90`):
+
+```sql
+SELECT TAG:bp::string   AS blueprint,
+       TAG:step::string AS step,
+       COUNT(*)         AS n
+FROM   job_etl_v
+WHERE  TAG:src::string = 'blueprints'
+GROUP  BY 1, 2;
+```
+
+Because `QUERY_TAG` lands in a dedicated `TAG` column, these queries do
+not require `LIKE` / `ILIKE` scans over SQL text.
+
+## PDF Deliverable Output
+
+Pass `--pdf` to generate a Snowflake-styled PDF alongside the Markdown guidance file.
+The PDF is written to the same directory with the same `{blueprint}_{timestamp}` basename:
+
+```
+projects/<project>/output/documentation/
+├── <blueprint>_<timestamp>.md
+└── <blueprint>_<timestamp>.pdf   ← new when --pdf is set
+```
+
+### Dependencies
+
+PDF generation requires `reportlab`, `markdown`, and `beautifulsoup4`, all of which are included in `requirements.txt`. Install all dependencies with:
+
+```bash
+pip install -r blueprint-manager/requirements.txt
+```
+
+If these are not installed the CLI exits with a clear error message pointing to `requirements.txt`.
+
+### Incompatibility
+
+`--pdf` requires guidance rendering. Combining `--pdf` with `--skip-guidance` is an error:
+
+```bash
+# Error: --pdf requires rendered guidance. Omit --skip-guidance or omit --pdf.
+python scripts/render_journey.py answers.yaml --blueprint bp --pdf --skip-guidance
+```
+
+### Example
+
+```bash
+python scripts/render_journey.py \
+  projects/my-project/answers/<blueprint_id>/my_answers.yaml \
+  --blueprint <blueprint_id> \
+  --project my-project \
+  --lang sql \
+  --pdf
+```
+
+License
+Copyright (c) 2026 Snowflake Inc. All rights reserved.
+This repo is source-available and licensed under these [terms](/LICENSE).

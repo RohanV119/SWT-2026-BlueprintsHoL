@@ -1,0 +1,114 @@
+-- ============================================================================
+-- BREAK-GLASS EMERGENCY ACCESS SETUP
+-- ============================================================================
+-- This script creates break-glass emergency access account(s)
+-- Use these accounts ONLY when SSO/SAML is unavailable
+-- ============================================================================
+
+USE ROLE ACCOUNTADMIN;
+
+-- ============================================================================
+-- STEP 1: CREATE AUTHENTICATION POLICY FOR BREAK-GLASS
+-- ============================================================================
+-- This policy requires MFA but only allows OTP (one-time passcodes)
+-- OTPs can be pre-generated and stored securely for emergency use
+-- Restricted to web UI only for security
+
+CREATE OR REPLACE AUTHENTICATION POLICY breakglass_auth_policy
+  AUTHENTICATION_METHODS = (PASSWORD)
+  MFA_ENROLLMENT = 'REQUIRED'
+  MFA_POLICY = (ALLOWED_METHODS = ('OTP'))
+  CLIENT_TYPES = (SNOWFLAKE_UI)
+  SECURITY_INTEGRATIONS = ()
+  COMMENT = 'Authentication policy for break-glass emergency access - password + OTP, UI only';
+
+-- ============================================================================
+-- STEP 2: CREATE BREAK-GLASS ACCOUNTS
+-- ============================================================================
+{%- for account in breakglass_accounts %}
+
+{# Determine if identifier needs quoting (contains @ or .) #}
+{%- set needs_quoting = '@' in account.username or '.' in account.username %}
+{%- if needs_quoting %}
+{%- set quoted_id = '"' ~ account.username ~ '"' %}
+{%- else %}
+{%- set quoted_id = account.username | upper %}
+{%- endif %}
+
+-- -----------------------------------------------------------------------------
+-- Break-Glass Account: {{ account.username | upper }}
+-- -----------------------------------------------------------------------------
+{%- if account.allowed_ips | upper != "NONE" %}
+
+-- Create network rule for {{ account.username | upper }}
+CREATE OR REPLACE NETWORK RULE {{ account.username | lower }}_network_rule
+  TYPE = IPV4
+  MODE = INGRESS
+  VALUE_LIST = ({% for ip in account.allowed_ips.split(',') %}'{{ ip | trim }}'{% if not loop.last %}, {% endif %}{% endfor %})
+  COMMENT = 'Network rule for break-glass account {{ account.username | upper }}';
+
+-- Create network policy for {{ account.username | upper }}
+CREATE OR REPLACE NETWORK POLICY {{ account.username | lower }}_network_policy
+  ALLOWED_NETWORK_RULE_LIST = ({{ account.username | lower }}_network_rule)
+  COMMENT = 'Network policy for break-glass account {{ account.username | upper }}';
+{%- endif %}
+
+-- Create break-glass user
+-- ⚠️  IMPORTANT: Replace <REPLACE_WITH_SECURE_PASSWORD> with a strong, unique password before executing.
+--    Password requirements: min 14 chars, 1+ uppercase, 1+ lowercase, 1+ digit, 1+ special character.
+--    Do NOT use a shared or reused password. Use a password manager to generate and store it.
+CREATE USER IF NOT EXISTS {{ quoted_id }}
+  PASSWORD = '<REPLACE_WITH_SECURE_PASSWORD>'
+  EMAIL = '{{ account.email }}'
+  MUST_CHANGE_PASSWORD = TRUE
+  DEFAULT_ROLE = 'ACCOUNTADMIN'
+  DEFAULT_WAREHOUSE = NULL
+  COMMENT = 'Break-glass emergency access account - use OTP workflow';
+
+-- Grant ACCOUNTADMIN role for full recovery capabilities
+GRANT ROLE ACCOUNTADMIN TO USER {{ quoted_id }};
+
+-- Apply the break-glass authentication policy
+ALTER USER {{ quoted_id }} 
+  SET AUTHENTICATION POLICY breakglass_auth_policy;
+
+{%- if account.allowed_ips | upper != "NONE" %}
+-- Apply the network policy to restrict access by IP
+ALTER USER {{ quoted_id }} 
+  SET NETWORK POLICY {{ account.username | lower }}_network_policy;
+{%- endif %}
+{%- endfor %}
+
+-- ============================================================================
+-- STEP 3: GENERATE ONE-TIME PASSCODES (OTPs) FOR BREAK-GLASS ACCESS
+-- ============================================================================
+-- ⚠️  IMPORTANT: The output of these commands contains the OTPs!
+--    Capture and store them securely - they cannot be retrieved later.
+--    See the "Capturing OTPs" section above for details.
+-- ============================================================================
+
+{%- for account in breakglass_accounts %}
+{%- set needs_quoting = '@' in account.username or '.' in account.username %}
+{%- if needs_quoting %}
+{%- set quoted_id = '"' ~ account.username ~ '"' %}
+{%- else %}
+{%- set quoted_id = account.username | upper %}
+{%- endif %}
+-- Generate 10 OTPs for {{ account.username | upper }}
+--ALTER USER {{ quoted_id }} ADD MFA METHOD OTP COUNT = 10;
+{%- endfor %}
+
+-- ============================================================================
+-- VERIFICATION
+-- ============================================================================
+
+-- Verify users were created
+{%- for account in breakglass_accounts %}
+SHOW USERS LIKE '{{ account.username }}';
+{%- endfor %}
+
+-- Verify authentication policy
+SHOW AUTHENTICATION POLICIES LIKE 'breakglass_auth_policy';
+
+-- Verify network policies
+SHOW NETWORK POLICIES;

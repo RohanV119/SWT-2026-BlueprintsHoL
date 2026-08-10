@@ -1,0 +1,48 @@
+{%- if enable_cost_tags == "Yes" %}
+## Additional Cost Allocation Tags: Enabled
+
+You've chosen to extend your tagging framework. In the **next step**, you'll select which additional tags to create.
+
+### Existing Tags (from Task 1)
+
+These tags were created in `{{ platform_database_name }}.{{ governance_name }}`:
+
+| Tag | Purpose |
+|-----|---------|
+| `domain` | Business unit |
+| `environment` | SDLC stage |
+| `dataproduct` | Data product ID |
+| `workload` | Workload type |
+| `zone` | Data zone |
+| `data_classification` | Data sensitivity level |
+
+### Available Additional Tags (configured in next step)
+
+In the next step, you'll choose from:
+
+| Tag | Purpose | Options |
+|-----|---------|---------|
+| `owner` | Responsible party | All options |
+| `cost_center` | Accounting code | Essential, All |
+| `project` | Initiative name | All only |
+| `application` | System name | All only |
+
+**Next Step:** Configure Cost Allocation Tags — select which additional tags to create.
+{%- else %}
+## Additional Cost Allocation Tags: Not Enabled
+
+You've chosen to use only the core platform tags.
+
+### Available Tags
+
+| Tag | Purpose |
+|-----|---------|
+| `domain` | Business unit tracking |
+| `environment` | Environment cost separation |
+| `dataproduct` | Data product allocation |
+| `workload` | Workload type tracking |
+| `zone` | Data zone classification |
+| `data_classification` | Data sensitivity level |
+
+You can add more tags later for FinOps and cost allocation purposes if needed.
+{%- endif %}

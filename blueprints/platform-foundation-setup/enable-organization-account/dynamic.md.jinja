@@ -1,0 +1,55 @@
+| Configuration | Value |
+|---------------|-------|
+| **Create Organization Account** | {{ enable_org_account }} |
+
+{%- if enable_org_account == "Yes" %}
+
+## Organization Account: Enabled
+
+We have decided to **create an Organization Account** for centralized management of our Snowflake environment.
+
+**Capabilities That Will Be Enabled:**
+
+| Capability | Description |
+|------------|-------------|
+| Centralized View | Single pane of glass for all accounts in the organization |
+| Unified Billing | Consolidated cost management and billing across accounts |
+| Account Provisioning | Ability to create and manage child accounts programmatically |
+| Organization Policies | Apply governance policies across all accounts |
+| Cross-Account Features | Enable data sharing, replication, and failover between accounts |
+| ORGADMIN Role | Manage organization-level objects and users across accounts |
+
+**Requirements:**
+- ✅ Snowflake Enterprise Edition or higher
+- ✅ ORGADMIN role granted in the existing account
+
+**Important Notes:**
+- The Organization Account should **not** contain business data
+- It is used exclusively for administrative and management purposes
+- Additional ACCOUNTADMIN users should be added for redundancy
+
+**Next Step:** In the next step, you will create the actual Organization Account, including the account name, administrator details, edition, and region.
+
+{%- else %}
+
+## Organization Account: Not Enabled
+
+We have decided **not to create an Organization Account** at this time.
+
+**Implications:**
+- Single-account deployment without centralized management features
+- Organization-level features are not available
+- Can be enabled later if you select or upgrade to Snowflake edition Enterprise or higher
+
+**Next Step:** You will skip the Create Organization Account step and continue to the next configuration step.
+
+{%- endif %}
+
+## Key Terminology
+
+| Term | Definition |
+|------|------------|
+| Organization | A Snowflake object that links accounts owned by your business entity |
+| Organization Name | Your Snowflake business entity identifier (e.g., `ACME` or `XY12345`) |
+| Organization Account | A special account type with ORGADMIN privileges for managing other accounts |
+| Organization Account Name | The name you assign to your Organization Account (configured in the next step if enabled) |
