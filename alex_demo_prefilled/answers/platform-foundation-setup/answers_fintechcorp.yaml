@@ -1,0 +1,288 @@
+# =============================================================================
+# Platform Foundation Setup - FintechCorp
+# Blueprint: blueprint_4d563df2
+# Project: alex_demo_prefilled
+# Created: 2026-08-10
+#
+# Context supplied by user:
+#   300-person fintech on AWS ap-northeast-1. Data engineering (10), analytics
+#   (15), data science (6). Processes payment data. Strict security: MFA for all
+#   users, Okta SSO with SCIM provisioning, network policy limited to corporate
+#   IP range. ONE Snowflake account with dev/staging/prod separated by database
+#   and role. Retention 30 days prod, 1 day dev and staging. Resource monitors,
+#   monthly budget with alerts, cost allocation tags for per-team attribution.
+#   Org admin email alex@fintechcorp.com, account FINTECHCORP.
+#
+# Legend:
+#   AUTO-ANSWERED   - derived directly from the description above
+#   ASSUMPTION      - inferred from fintech norms; review before running
+#   USER INPUT      - left null; only you can supply this
+#   PLACEHOLDER     - user asked for placeholders; must be replaced before running
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TASK 1 - PLATFORM FOUNDATION
+# Reviewers: Platform Administrator, Cloud/Infrastructure Team
+# -----------------------------------------------------------------------------
+
+# STEP: determine-account-strategy
+# AUTO-ANSWERED: user explicitly asked for one account with dev/staging/prod
+# separated internally by database and role.
+account_strategy: Single Account
+
+# STEP: configure-organization-name-for-connectivity
+# AUTO-ANSWERED: account name given as FINTECHCORP.
+snowflake_org_name: FINTECHCORP
+# AUTO-ANSWERED: single account, so no prefix is needed to disambiguate accounts.
+account_name_prefix: NONE
+
+# STEP: enable-organization-account
+# AUTO-ANSWERED: an Organization Account exists to centrally manage MANY accounts.
+# With a single-account strategy it adds cost and operational overhead for no
+# benefit. Revisit if you later split prod into its own account.
+enable_org_account: 'No'
+
+# STEP: create-organization-account
+# No Organization Account is created (enable_org_account is No). The edition and
+# admin fields stay null so the renderer skips that step entirely.
+#
+# org_account_name is populated only because the SAML step reuses it to build
+# your account URL as <org>-<account>.snowflakecomputing.com. You confirmed both
+# the organization and the account are named FINTECHCORP, giving
+# https://fintechcorp-fintechcorp.snowflakecomputing.com.
+org_account_name: FINTECHCORP
+org_account_edition: null
+org_account_region: null
+org_admin_name: null
+org_admin_email: null
+
+# STEP: create-infrastructure-database
+# ASSUMPTION: INFRA / GOVERNANCE are the conventional names in this blueprint
+# family. This database holds tags, network rules and policies centrally.
+platform_database_name: INFRA
+governance_name: GOVERNANCE
+
+# STEP: define-domains-environments-and-object-naming-conventions
+# ASSUMPTION: domains inferred from a payments-processing business. These become
+# the first segment of every object name, so confirm they match how your teams
+# actually divide ownership.
+domain_list:
+  - payments
+  - risk
+  - ledger
+  - customer
+  - compliance
+
+# AUTO-ANSWERED: dev, staging and prod were named explicitly. Abbreviated to
+# three characters for compact object names.
+environment_list:
+  - dev
+  - stg
+  - prod
+
+# AUTO-ANSWERED: domain-first, environment-last. This groups all environments of
+# a domain together alphabetically, which is what you want when environments are
+# separated by database inside one account. It also matches the prefix the
+# data-product templates generate for Single Account
+# (<domain>_<dataproduct>_<env>).
+object_component_order: <domain>_<dataproduct>_<env>
+
+# STEP: configure-infrastructure-database-replication
+# Not applicable: replication moves the infrastructure database to OTHER accounts.
+# There are no other accounts.
+infrastructure_replication_group: null
+replication_schedule: Manual only
+
+# -----------------------------------------------------------------------------
+# TASK 2 - PLATFORM SECURITY & IDENTITY
+# Reviewers: Security Administrator, Identity Team, Platform Administrator
+# -----------------------------------------------------------------------------
+
+# STEP: select-identity-management-approach
+# AUTO-ANSWERED: Okta with SCIM provisioning was stated explicitly.
+identity_provider: Okta
+configure_saml: Yes - Configure SAML now
+
+# STEP: configure-scim-integration
+# ASSUMPTION: conventional integration name.
+scim_integration_name: OKTA_SCIM_INTEGRATION
+# AUTO-ANSWERED: matches the Okta identity provider choice.
+scim_provisioner_role: OKTA_PROVISIONER
+
+# ACTION REQUIRED: this is an empty list, not null. That means the SCIM
+# integration and provisioner role ARE created, but the SCIM endpoint is not
+# IP-restricted - it is protected only by its bearer token. Add Okta's egress IP
+# ranges here and re-render to close that gap.
+#
+# These are the IPs Okta itself calls Snowflake from, NOT your corporate range.
+# How to find them: Okta Admin Console > Settings > Network, or Okta's published
+# IP ranges document for your Okta cell.
+scim_allowed_ips: []
+
+# STEP: provision-account-administrators
+# ASSUMPTION: alex@fintechcorp.com is the only named person you gave, so they are
+# the initial ACCOUNTADMIN. Snowflake best practice is at least two named
+# ACCOUNTADMINs plus break-glass, so add a second before go-live.
+# Note: with Okta SCIM, these users are created by Okta; this step only grants
+# the admin roles to the login names Okta creates.
+scim_admin_users:
+  - login_name: alex@fintechcorp.com
+    admin_role: ACCOUNTADMIN
+
+# STEP: create-organization-account-administrators
+# Not applicable: identity is managed by Okta, not manually.
+manual_admin_users: []
+
+# STEP: configure-samlsso
+# ASSUMPTION: conventional integration name.
+saml_integration_name: OKTA_SSO
+# PLACEHOLDER - you asked for placeholders. All three values below MUST be
+# replaced with real values from your Okta SAML app before running the SQL.
+# Okta Admin Console > Applications > your Snowflake app > Sign On > View SAML
+# setup instructions.
+saml_issuer: http://www.okta.com/REPLACE_WITH_OKTA_ENTITY_ID
+saml_sso_url: https://fintechcorp.okta.com/app/REPLACE_WITH_OKTA_APP_ID/sso/saml
+# Paste the base64 body ONLY, as a single line with no line breaks. Do NOT
+# include the -----BEGIN CERTIFICATE----- / -----END CERTIFICATE----- delimiters:
+# SAML2_X509_CERT rejects them.
+saml_certificate: REPLACE_WITH_OKTA_X509_SIGNING_CERTIFICATE_BASE64_BODY_ONLY
+# AUTO-ANSWERED: SSO is the primary login path, so surface the button.
+saml_sso_login_page: 'Yes'
+
+# STEP: create-break-glass-emergency-access
+# ASSUMPTION: one break-glass account. This account intentionally uses
+# password + MFA rather than SSO, so you can still get in if Okta is unavailable.
+# Its credentials belong in a sealed vault with checkout logging.
+breakglass_accounts:
+  - username: BREAKGLASS_ADMIN
+    email: alex@fintechcorp.com
+    allowed_ips: 10.0.0.0/8
+
+# STEP: configure-network-rules-and-policies
+# AUTO-ANSWERED from your instruction to restrict access to the corporate range.
+# ASSUMPTION on the value itself: 10.0.0.0/8 is the placeholder you confirmed.
+# Replace it with your real public egress CIDR before running - a private RFC1918
+# range will not match traffic arriving at Snowflake from the internet.
+allowed_network_rules:
+  - rule_name: CORPORATE_NETWORK
+    cidr_blocks: 10.0.0.0/8
+
+# AUTO-ANSWERED: nothing to deny explicitly; the allow-list is the control.
+blocked_network_rules: []
+
+# AUTO-ANSWERED: "restricting access to our corporate IP range" means everyone,
+# not a subset.
+enable_account_network_policy: Yes - Apply to all users by default
+
+# STEP: configure-authentication-policies
+# ASSUMPTION: both SSO and password+MFA are allowed for humans. SSO is the
+# intended path; password+MFA stays enabled so a SAML misconfiguration cannot
+# lock every user out of the account. Tighten to SAML-only once SSO is verified.
+human_auth_methods:
+  - SAML (SSO)
+  - Password with MFA
+
+# AUTO-ANSWERED: MFA required for all users. Both factor types allowed so users
+# are not blocked, with passkeys preferred (see preferred_mfa_method).
+mfa_method:
+  - TOTP (Authenticator Apps)
+  - Passkey (FIDO2/WebAuthn)
+
+# ASSUMPTION: no PAT. Personal access tokens are long-lived bearer credentials
+# and are a poor fit for an environment handling cardholder data. Key pair for
+# pipelines, OAuth for applications.
+service_auth_methods:
+  - OAuth
+  - Key Pair
+
+# AUTO-ANSWERED: strict posture means the default applies to everyone, with
+# narrower policies attached to break-glass and service accounts as exceptions.
+apply_auth_policies_account_level: Yes - Apply default policy to all users
+
+# STEP: enable-multi-factor-authentication
+# ASSUMPTION: immediate enforcement. The admin population is small and you
+# described MFA as a hard requirement. If you need an enrollment window, change
+# this to "7 Days - Allow one week for enrollment".
+mfa_enforcement_timeline: Immediately - Require MFA now
+# ASSUMPTION: passkeys are phishing-resistant and are the direction fintechs
+# under PCI DSS 4.0 are moving. TOTP remains allowed as a fallback.
+preferred_mfa_method: Passkey (Security Keys/Biometrics)
+# ASSUMPTION: routed to the org admin you named. Replace with a monitored
+# helpdesk distribution list rather than an individual.
+mfa_support_contact: alex@fintechcorp.com
+
+# -----------------------------------------------------------------------------
+# TASK 3 - PLATFORM COST MANAGEMENT
+# Reviewers: FinOps Team, Finance Team, Platform Administrator
+# -----------------------------------------------------------------------------
+
+# STEP: enable-spending-budgets
+# AUTO-ANSWERED: "an org-wide monthly budget with alerts".
+enable_budgets: 'Yes'
+
+# STEP: configure-spending-budgets
+# ASSUMPTION: 3000 credits/month, confirmed by you. Sized for ~31 data
+# practitioners on Enterprise. Budgets alert only; they never suspend compute.
+account_monthly_budget: '3000'
+# ASSUMPTION: 75% gives roughly a week of runway in a 30-day month to react
+# before the resource monitor starts suspending warehouses.
+budget_notification_threshold: '75'
+# ASSUMPTION: hourly refresh rather than the 6.5-hour default, because you asked
+# to prevent runaway compute rather than just report on it.
+budget_refresh_interval: 1 hour (frequent monitoring)
+# ASSUMPTION: routed to the org admin you named. Add your FinOps distribution
+# list here.
+budget_alert_emails:
+  - alex@fintechcorp.com
+
+# STEP: enable-resource-monitors
+# AUTO-ANSWERED: "resource monitors to prevent runaway compute".
+enable_resource_monitors: 'Yes'
+
+# STEP: configure-resource-monitors
+# ASSUMPTION: the account monitor is a hard ceiling set equal to the budget. The
+# budget warns at 75%; this is the backstop that actually stops spend.
+account_resource_monitor_limit: '3000'
+# ASSUMPTION: let running queries finish rather than killing them mid-flight.
+# Aborting in-flight statements on payment pipelines risks partial loads.
+account_resource_monitor_action: Suspend After Current Queries
+# AUTO-ANSWERED: matches the monthly budget cycle.
+account_resource_monitor_reset_frequency: Monthly
+
+# STEP: enable-cost-allocation-tags
+# AUTO-ANSWERED: "cost allocation tags so we can attribute spend by team".
+enable_cost_tags: 'Yes'
+
+# STEP: configure-cost-allocation-tags
+# AUTO-ANSWERED: Cost Center and Owner are what make per-team attribution work.
+# Project is included because fintech data work is usually funded per initiative.
+# Application omitted - it duplicates the DATAPRODUCT tag this blueprint already
+# creates.
+additional_tag_dimensions:
+  - Cost Center
+  - Owner
+  - Project
+# ASSUMPTION: required everywhere. Optional tags produce incomplete chargeback,
+# which defeats the purpose. This does mean every new warehouse and database
+# must be tagged at creation time.
+require_cost_tags: Yes (all resources)
+
+# -----------------------------------------------------------------------------
+# TASK 4 - PLATFORM OBSERVABILITY
+# Reviewers: Platform Administrator, SRE / Observability Team
+# -----------------------------------------------------------------------------
+
+# STEP: configure-telemetry-parameters
+# ASSUMPTION: Info captures application-level logging without the volume of
+# Debug or Trace. Raise to Debug temporarily when troubleshooting.
+account_log_level: Info
+# ASSUMPTION: full metrics. Cheap, and needed to size warehouses.
+account_metric_level: All
+# ASSUMPTION: On_Event traces only spans that actually record events, which
+# avoids the cost of Always while still capturing errors.
+account_trace_level: On_Event
+# AUTO-ANSWERED: Off. This is the important one. Capturing SQL statement text in
+# trace data can write card numbers, account numbers and other cardholder data
+# from literals and predicates into the event table, putting it outside your
+# masking and access controls. Keep it Off in a payments environment.
+account_sql_trace_query_text: 'Off'
