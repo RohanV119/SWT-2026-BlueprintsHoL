@@ -1,0 +1,99 @@
+# =============================================================================
+# Data Product Setup - FintechCorp Payments Core (STAGING)
+# Blueprint: blueprint_2db08610
+# Project: alex_demo_prefilled
+# Created: 2026-08-10
+#
+# Generated object prefix: PAYMENTS_CORE_STG
+# Staging mirrors prod structurally so releases are tested against the same shape,
+# but with 1-day Time Travel and smaller compute.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TASK 1 - DATA PRODUCT PLANNING
+# -----------------------------------------------------------------------------
+
+account_strategy: Single Account
+target_account_name: FINTECHCORP
+
+snowflake_org_name: FINTECHCORP
+object_component_order: <domain>_<dataproduct>_<env>
+platform_database_name: INFRA
+governance_name: GOVERNANCE
+
+data_product_name: core
+data_product_domain: payments
+data_product_environment: stg
+data_product_description: >-
+  Staging environment for the core payments data product. Structurally identical
+  to prod so schema and pipeline changes can be validated against production
+  shape before release.
+
+scim_prefix: OKTA
+
+# AUTO-ANSWERED on retention: 1 day Time Travel in staging, exactly as specified.
+# Staging data is reproducible from prod or from source, so paying for 30 days of
+# Time Travel storage here has no recovery value.
+data_zones:
+  - name: raw
+    description: Staging copy of raw payment source data. Should hold masked or synthetic data, not production cardholder data.
+    time_travel_days: 1
+  - name: curated
+    description: Staging curated payment entities for release validation.
+    time_travel_days: 1
+  - name: analytics
+    description: Staging reporting models and feature tables.
+    time_travel_days: 1
+
+# ASSUMPTION: identical schema layout to prod. Divergence between staging and
+# prod schemas is what causes release-night surprises.
+schema_configuration:
+  - zone: raw
+    schemas: card_transactions, bank_transfers, merchants, customers, ledger_entries, gateway_events
+  - zone: curated
+    schemas: transactions, settlements, merchants, customers, chargebacks, ledger
+  - zone: analytics
+    schemas: revenue, settlement_reconciliation, fraud_features, merchant_performance, regulatory_reporting
+
+# ASSUMPTION: two warehouses instead of prod's four. Staging runs pipeline and
+# release validation, not concurrent BI or model training, so REPORT and SCIENCE
+# are not needed. Aggressive auto-suspend because usage is intermittent.
+warehouse_configuration:
+  - name: LOAD
+    workload: LOAD
+    size: XSMALL
+    min_cluster_count: 1
+    max_cluster_count: 1
+    auto_suspend_seconds: 60
+    timeout_minutes: 60
+    comment: Ingestion warehouse for payments core staging.
+  - name: TRANSFORM
+    workload: TRANSFORM
+    size: SMALL
+    min_cluster_count: 1
+    max_cluster_count: 1
+    auto_suspend_seconds: 60
+    timeout_minutes: 120
+    comment: Transformation and release validation warehouse for payments core staging.
+
+# -----------------------------------------------------------------------------
+# TASK 4 - CONSUMER ACCESS
+# -----------------------------------------------------------------------------
+
+# ASSUMPTION: only the engineers validating releases need read access in staging.
+# No analyst or auditor roles here - those consume prod.
+custom_read_roles:
+  - name: RELEASE_VALIDATOR
+    description: Data engineering. Read access across curated and analytics to validate a release before promotion to prod.
+    schema_access: curated, analytics
+
+# -----------------------------------------------------------------------------
+# TASK 5 - DATA PRODUCT COST MANAGEMENT
+# -----------------------------------------------------------------------------
+
+# ASSUMPTION: 400 of the 3000 account credits. Staging should be a small fraction
+# of prod; if it is not, something is running that should not be.
+resource_monitor_credits: 400
+resource_monitor_frequency: MONTHLY
+
+notification_email: alex@fintechcorp.com

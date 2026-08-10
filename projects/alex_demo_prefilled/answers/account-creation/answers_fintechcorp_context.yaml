@@ -1,0 +1,196 @@
+# =============================================================================
+# Account Creation - FintechCorp (CONTEXT ONLY - no new account defined)
+# Blueprint: blueprint_4e7081df
+# Project: alex_demo_prefilled
+# Created: 2026-08-10
+#
+# WHY THIS FILE IS PARTIAL
+# You chose a Single Account strategy: one Snowflake account (FINTECHCORP) with
+# dev, staging and prod separated by database and role. The Account Creation
+# blueprint exists to provision ADDITIONAL Snowflake accounts, so there is no new
+# account to create today.
+#
+# Per your instruction, the inherited context fields are filled in so this file
+# is ready the day you do split an environment out (the most common trigger in
+# fintech is a regulator or an auditor requiring prod to be a physically separate
+# account). The new-account identity fields are deliberately left null.
+#
+# TO USE THIS FILE LATER
+#   1. Change account_strategy to the multi-account variant you are moving to.
+#   2. Fill the "NEW ACCOUNT DETAILS" block below.
+#   3. Set enable_org_account to Yes in the Platform Foundation answer file and
+#      re-run it, because multi-account requires an Organization Account to
+#      centrally manage and replicate the infrastructure database.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TASK 1 - ACCOUNT PROVISIONING
+# Reviewers: Platform Administrator, Cloud/Infrastructure Team
+# -----------------------------------------------------------------------------
+
+# STEP: confirm-account-strategy
+# AUTO-ANSWERED: mirrors the Platform Foundation answer file.
+account_strategy: Single Account
+
+# Inherited organization context (must stay in sync with
+# answers/platform-foundation-setup/answers_fintechcorp.yaml)
+snowflake_org_name: FINTECHCORP
+account_name_prefix: NONE
+object_component_order: <domain>_<dataproduct>_<env>
+governance_name: GOVERNANCE
+platform_database_name: INFRA
+
+# No Organization Account exists under Single Account. org_account_name is set
+# only because several templates reuse it to build the account URL
+# (<org>-<account>.snowflakecomputing.com).
+org_account_name: FINTECHCORP
+infrastructure_replication_group: null
+
+# ASSUMPTION: conventional name for the read-only replica of the infrastructure
+# database inside a target account. Only used once you go multi-account.
+shared_database_name: INFRA_SHARED
+
+# Structure context, inherited
+domain_list:
+  - payments
+  - risk
+  - ledger
+  - customer
+  - compliance
+
+environment_list:
+  - dev
+  - stg
+  - prod
+
+# -----------------------------------------------------------------------------
+# NEW ACCOUNT DETAILS - intentionally blank
+# -----------------------------------------------------------------------------
+# USER INPUT REQUIRED (only when you actually provision a second account).
+# What's needed / how to decide:
+#   new_account_name        A name following your convention, e.g. FINTECHCORP_PROD
+#   new_account_edition     Business Critical is the usual answer for a payments
+#                           workload - it adds Tri-Secret Secure (customer-managed
+#                           keys), PrivateLink and HIPAA/PCI support that
+#                           Enterprise does not include. Enterprise is sufficient
+#                           for a non-production account.
+#   new_account_region      aws_ap_northeast_1 to match your existing footprint
+#                           and avoid cross-region data movement.
+#   new_account_admin_*     The initial local admin, created before SSO exists in
+#                           the new account.
+#   account_domain          One of domain_list, if splitting by domain.
+#   account_environment     One of environment_list, if splitting by environment.
+new_account_name: null
+new_account_edition: null
+new_account_region: null
+new_account_admin_name: null
+new_account_admin_email: null
+account_domain: null
+account_environment: null
+account_description: null
+
+# -----------------------------------------------------------------------------
+# TASK 2 - ACCOUNT SECURITY & IDENTITY
+# Reviewers: Security Administrator, Identity Team, Platform Administrator
+# -----------------------------------------------------------------------------
+
+# STEP: select-security-configuration-approach
+# ASSUMPTION: inherit the organization-level security configuration rather than
+# diverging per account. Divergent security config across accounts is a common
+# source of audit findings.
+security_config_approach: Use Organization Configuration
+account_configure_saml: Yes - Configure SAML for this account
+
+# Inherited identity and authentication settings
+identity_provider: Okta
+configure_saml: Yes - Configure SAML now
+human_auth_methods:
+  - SAML (SSO)
+  - Password with MFA
+mfa_method:
+  - TOTP (Authenticator Apps)
+  - Passkey (FIDO2/WebAuthn)
+service_auth_methods:
+  - OAuth
+  - Key Pair
+apply_auth_policies_account_level: Yes - Apply default policy to all users
+enable_account_network_policy: Yes - Apply to all users by default
+
+# Inherited network rules. Replace 10.0.0.0/8 with your real corporate egress
+# CIDR - see the note in the Platform Foundation answer file.
+allowed_network_rules:
+  - rule_name: CORPORATE_NETWORK
+    cidr_blocks: 10.0.0.0/8
+blocked_network_rules: []
+
+# ASSUMPTION: mirrors the organization allow-list. Note this object-list uses the
+# key ip_addresses (not cidr_blocks) - that is what the account-scoped template
+# reads.
+account_allowed_network_rules:
+  - rule_name: CORPORATE_NETWORK
+    ip_addresses: 10.0.0.0/8
+account_blocked_network_rules: []
+
+# ASSUMPTION: the new account needs its own local infrastructure database,
+# because the replicated one is read-only and cannot hold account-specific
+# authentication and network policies.
+local_infra_database: INFRA_LOCAL
+local_policies_schema: POLICIES
+
+# ASSUMPTION: conventional names; only used once a real account exists.
+account_scim_integration_name: OKTA_SCIM_INTEGRATION
+account_saml_integration_name: OKTA_SSO
+
+# Empty list rather than null, matching the Platform Foundation file: the SCIM
+# integration is created but not IP-restricted. Add Okta's egress IP ranges here.
+account_scim_allowed_ips: []
+
+# PLACEHOLDER - replace with real values from the Okta app for this account
+# before running.
+account_saml_issuer: http://www.okta.com/REPLACE_WITH_OKTA_ENTITY_ID
+account_saml_sso_url: https://fintechcorp.okta.com/app/REPLACE_WITH_OKTA_APP_ID/sso/saml
+account_saml_certificate: REPLACE_WITH_OKTA_X509_SIGNING_CERTIFICATE_BASE64_BODY_ONLY
+
+# USER INPUT REQUIRED: administrators for the new account. Left blank because
+# there is no new account and inventing names would produce SQL that creates
+# real users you did not ask for.
+account_admin_users: []
+
+# ASSUMPTION: mirrors the organization break-glass pattern. Every account needs
+# its own break-glass user - break-glass access does not replicate.
+account_breakglass_accounts:
+  - username: BREAKGLASS_ADMIN
+    email: alex@fintechcorp.com
+    allowed_ips: 10.0.0.0/8
+
+# ASSUMPTION: routed to the org admin you named.
+account_mfa_support_contact: alex@fintechcorp.com
+
+# -----------------------------------------------------------------------------
+# TASK 3 - ACCOUNT COST MANAGEMENT
+# Reviewers: FinOps Team, Finance Team, Platform Administrator
+# -----------------------------------------------------------------------------
+
+# ASSUMPTION: if you split prod into its own account, the bulk of the 3000-credit
+# monthly budget follows prod. These numbers assume roughly a 2000 prod / 1000
+# non-prod split and should be revisited at the time.
+account_budget_limit: '2000'
+account_budget_threshold: '75'
+account_budget_emails:
+  - alex@fintechcorp.com
+
+account_resource_monitor_limit: '2000'
+account_resource_monitor_reset_frequency: Monthly
+account_resource_monitor_action: Suspend After Current Queries
+
+# -----------------------------------------------------------------------------
+# TASK 4 - ACCOUNT OBSERVABILITY
+# Reviewers: Platform Administrator, SRE / Observability Team
+# -----------------------------------------------------------------------------
+
+# Inherited from the Platform Foundation answers. SQL trace text stays Off for
+# the same cardholder-data reason.
+account_log_level: Info
+account_metric_level: All
+account_trace_level: On_Event
+account_sql_trace_query_text: 'Off'

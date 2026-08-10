@@ -1,0 +1,192 @@
+# =============================================================================
+# RBAC Hardening - FintechCorp
+# Blueprint: blueprint_e2a16d54
+# Project: alex_demo_prefilled
+# Created: 2026-08-10
+#
+# Run this AFTER platform-foundation-setup and the three data-product-setup files.
+# This blueprint audits and tightens what those blueprints created, then stands up
+# ongoing monitoring.
+#
+# PREREQUISITES THIS BLUEPRINT DOES NOT CREATE (see notes inline):
+#   - a warehouse for monitoring tasks and alerts (rbac_monitoring_warehouse)
+#   - an email notification integration (rbac_alert_notification_integration)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TASK 1 - RBAC ASSESSMENT
+# -----------------------------------------------------------------------------
+
+# STEP: audit-role-hierarchy / audit-privilege-grants / audit-stale-access
+# AUTO-ANSWERED: Full Account. You have one account holding all three
+# environments, so a data-product-scoped audit would miss the account-level grants
+# (ACCOUNTADMIN sprawl, PUBLIC role grants, direct user grants) that matter most
+# in a payments environment.
+rbac_audit_scope: Full Account
+
+# Listed for the monitoring and reporting steps even though the audit is
+# account-wide. These are the prefixes the data-product-setup files generate.
+rbac_target_prefixes:
+  - PAYMENTS_CORE_PROD
+  - PAYMENTS_CORE_STG
+  - PAYMENTS_CORE_DEV
+
+# -----------------------------------------------------------------------------
+# TASK 2 - PRIVILEGE HARDENING
+# -----------------------------------------------------------------------------
+
+# STEP: restrict-public-role
+# AUTO-ANSWERED: Yes. Every user in Snowflake automatically holds PUBLIC, so any
+# grant to PUBLIC is a grant to the entire company. That is incompatible with
+# cardholder data.
+rbac_restrict_public: 'Yes'
+
+# AUTO-ANSWERED: no exceptions. An empty list means nothing stays reachable via
+# PUBLIC. Add SNOWFLAKE_SAMPLE_DATA here only if your teams actively use it for
+# training.
+rbac_public_exceptions: []
+
+# STEP: enforce-admin-separation
+# ASSUMPTION: ACCOUNTADMIN reduced to the named org admin plus the break-glass
+# account. ACCOUNTADMIN can read every table and alter every policy, so it is not
+# a day-to-day working role - engineers should operate as SYSADMIN or as the data
+# product roles.
+#
+# Add a second named human here before go-live. A single named ACCOUNTADMIN is a
+# continuity risk if that person is unavailable.
+rbac_accountadmin_users:
+  - alex@fintechcorp.com
+  - BREAKGLASS_ADMIN
+
+# STEP: transfer-object-ownership
+# AUTO-ANSWERED: Yes. Objects owned by individual users or ad hoc roles disappear
+# from the hierarchy when that person leaves, and are a recurring audit finding.
+rbac_reassign_ownership: 'Yes'
+
+# ASSUMPTION: SYSADMIN is the default recipient for anything not covered by a
+# per-schema rule below.
+rbac_target_owner_role: SYSADMIN
+
+# Left empty deliberately. Per-schema ownership overrides can only be written
+# after you have run the Task 1 audit and seen which schemas are actually owned by
+# the wrong role. Guessing here would transfer ownership of objects you did not
+# intend to touch.
+rbac_ownership_scope: []
+
+# STEP: enforce-managed-access-schemas
+# AUTO-ANSWERED: Yes. In a normal schema, whoever creates an object can grant
+# access to it, which lets engineers hand out access to payment tables without
+# security review. Managed access moves all granting to the schema owner.
+rbac_enforce_managed_access: 'Yes'
+
+# -----------------------------------------------------------------------------
+# TASK 3 - USER & SERVICE ACCOUNT PROVISIONING
+# -----------------------------------------------------------------------------
+
+# STEP: assign-functional-roles
+# USER INPUT REQUIRED. This maps named humans to data product roles and needs your
+# 31 real Snowflake login names, which I will not invent - the generated SQL grants
+# real access to real accounts.
+#
+# Format, one entry per person per data product:
+#   - user_name: firstname.lastname@fintechcorp.com
+#     role_level: ADMIN | CREATE | WRITE | READ
+#     data_product_prefix: PAYMENTS_CORE_PROD
+#
+# Suggested mapping for your three teams:
+#   Data engineering (10)  CREATE on PAYMENTS_CORE_DEV and _STG, WRITE on _PROD
+#                          (they build in dev, they do not create objects in prod)
+#   Analytics (15)         READ on PAYMENTS_CORE_PROD
+#   Data science (6)       READ on PAYMENTS_CORE_PROD
+#   Data product owner     ADMIN on PAYMENTS_CORE_PROD
+#
+# Because you use Okta SCIM, the cleaner long-term pattern is to drive these
+# grants from Okta group membership rather than maintaining this list by hand.
+rbac_user_role_assignments: []
+
+# STEP: provision-service-accounts
+# ASSUMPTION: service accounts inferred from a standard fintech data stack. Rename
+# to match the tools you actually run. All of them are pinned to the account
+# network policy, and all authenticate by key pair or OAuth (never PAT) per the
+# service_auth_methods setting in the Platform Foundation answers.
+#
+# Note the role_level split: only the dev/staging dbt account gets CREATE. The
+# prod transform account gets WRITE, so a runaway job cannot create or drop
+# objects in production.
+rbac_service_accounts:
+  - account_name: SVC_INGEST_GATEWAY
+    purpose: Ingests card transactions, bank transfers and gateway events from the payment gateway into the prod raw zone.
+    role_level: WRITE
+    data_product_prefix: PAYMENTS_CORE_PROD
+    warehouse: PAYMENTS_CORE_PROD_WH_LOAD
+    network_policy_name: account_network_policy
+  - account_name: SVC_TRANSFORM_PROD
+    purpose: Runs scheduled transformations from raw to curated to analytics in prod.
+    role_level: WRITE
+    data_product_prefix: PAYMENTS_CORE_PROD
+    warehouse: PAYMENTS_CORE_PROD_WH_TRANSFORM
+    network_policy_name: account_network_policy
+  - account_name: SVC_BI_REPORTING
+    purpose: BI tool service account for analytics dashboards. Read-only against the analytics zone.
+    role_level: READ
+    data_product_prefix: PAYMENTS_CORE_PROD
+    warehouse: PAYMENTS_CORE_PROD_WH_REPORT
+    network_policy_name: account_network_policy
+  - account_name: SVC_ML_TRAINING
+    purpose: Data science feature extraction and model training against curated and analytics zones.
+    role_level: READ
+    data_product_prefix: PAYMENTS_CORE_PROD
+    warehouse: PAYMENTS_CORE_PROD_WH_SCIENCE
+    network_policy_name: account_network_policy
+  - account_name: SVC_TRANSFORM_STG
+    purpose: Runs the same transformation pipeline in staging for release validation.
+    role_level: CREATE
+    data_product_prefix: PAYMENTS_CORE_STG
+    warehouse: PAYMENTS_CORE_STG_WH_TRANSFORM
+    network_policy_name: account_network_policy
+  - account_name: SVC_TRANSFORM_DEV
+    purpose: CI pipeline account for building and testing transformations in dev.
+    role_level: CREATE
+    data_product_prefix: PAYMENTS_CORE_DEV
+    warehouse: PAYMENTS_CORE_DEV_WH_TRANSFORM
+    network_policy_name: account_network_policy
+
+# -----------------------------------------------------------------------------
+# TASK 4 - MONITORING & COMPLIANCE
+# -----------------------------------------------------------------------------
+
+# STEP: create-rbac-monitoring-views
+# ASSUMPTION: a dedicated XSMALL administrative warehouse.
+#
+# ACTION REQUIRED: none of these blueprints create this warehouse. Create it once
+# as ACCOUNTADMIN before running the generated RBAC SQL:
+#   CREATE WAREHOUSE IF NOT EXISTS INFRA_WH_ADMIN
+#     WITH WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE
+#     INITIALLY_SUSPENDED = TRUE
+#     COMMENT = 'Platform administration, RBAC monitoring and alerting';
+#
+# Using a dedicated warehouse rather than a data product warehouse keeps security
+# monitoring credits out of your per-team chargeback numbers.
+rbac_monitoring_warehouse: INFRA_WH_ADMIN
+
+# STEP: configure-privilege-change-alerts
+# AUTO-ANSWERED: Yes. Unreviewed privilege changes are the main way access creeps
+# in an environment like this, and alerting on them is what makes your quarterly
+# access review defensible to an auditor.
+rbac_enable_alerts: 'Yes'
+
+# ASSUMPTION: conventional name.
+#
+# ACTION REQUIRED: create the notification integration before running the
+# generated SQL. Email addresses must belong to verified Snowflake users:
+#   CREATE NOTIFICATION INTEGRATION IF NOT EXISTS EMAIL_SECURITY_ALERTS
+#     TYPE = EMAIL ENABLED = TRUE
+#     ALLOWED_RECIPIENTS = ('alex@fintechcorp.com');
+rbac_alert_notification_integration: EMAIL_SECURITY_ALERTS
+
+# STEP: generate-access-review-report
+# ASSUMPTION: quarterly. That is the cadence PCI DSS and SOC 2 auditors expect for
+# formal access reviews, and it is realistic for a 300-person company. The
+# privilege change alerts above cover the gap between reviews. Move to Monthly if
+# your auditor asks for it.
+rbac_review_frequency: Quarterly
