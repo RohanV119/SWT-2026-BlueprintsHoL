@@ -140,6 +140,12 @@
       padding: 6px 13px; cursor: pointer; }
     .copy-btn:hover { background: rgba(41,181,232,.28); color: var(--white); }
     .copy-btn.done { color: var(--green); background: rgba(40,199,111,.16); border-color: rgba(40,199,111,.6); }
+    /* Sits on the label row of a card, so the URL below needs no right padding. */
+    .copy-btn.sm { top: 12px; right: 12px; font-size: 9.5px; padding: 4px 9px; }
+    /* .tap-layer is pointer-events:none so the slide still advances on click;
+       re-enable it for the button and for the URL text people may select by hand. */
+    .tap-layer .copy-btn, .tap-layer .copyable { pointer-events: auto; }
+    .copyable { user-select: text; -webkit-user-select: text; cursor: text; }
 
     .tap-layer { position: relative; z-index: 120; pointer-events: none; }
     .tap-layer > .tappable { pointer-events: auto; }
@@ -357,23 +363,25 @@
 
       <!-- Lab logistics. Full trial URL sitting behind the tinyurl, for reference:
            https://signup.snowflake.com/?t=5c36d0deff795f53ce679dde7355ec88273c5553db77bd0e5b9b21af26108324&cloud=aws&region=ap-northeast-2
-           Link is active 11-16 Aug 2026. AI features enabled. -->
-      <div class="a5" style="margin-top:26px; width:100%; max-width:1280px; display:grid; grid-template-columns:1.15fr 1.15fr .9fr; gap:16px;">
-        <div style="background:rgba(41,181,232,.1); border:1px solid rgba(41,181,232,.45); border-radius:14px; padding:18px 24px; text-align:left;">
+           Link is active 11-16 Aug 2026. AI features enabled.
+         Workshop materials tinyurl.com/swtHoL2026 -> github.com/RohanV119/SWT-2026-BlueprintsHoL (public). -->
+      <div class="a5 tap-layer" style="margin-top:26px; width:100%; max-width:1280px; display:grid; grid-template-columns:1.15fr 1.15fr .9fr; gap:16px;">
+        <div style="position:relative; background:rgba(41,181,232,.1); border:1px solid rgba(41,181,232,.45); border-radius:14px; padding:18px 24px; text-align:left;">
+          <button class="copy-btn sm" type="button" data-copy="trial-url">Copy</button>
           <p style="font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--blue); font-weight:700; margin:0 0 9px;">Create your trial account</p>
-          <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:24px; font-weight:700; color:var(--white); margin:0 0 9px; word-break:break-all;">tinyurl.com/SWTSydneyLab26</p>
+          <p id="trial-url" class="copyable" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:22px; font-weight:700; color:var(--white); margin:0 0 9px; word-break:break-all;">tinyurl.com/SWTSydneyLab26</p>
           <p style="font-size:12.5px; color:var(--muted); margin:0; line-height:1.5;">AI features already enabled &middot; about two minutes to set up</p>
         </div>
-        <!-- Replace [ REPO ] below with the git tinyurl before presenting. -->
-        <div style="background:rgba(0,198,224,.08); border:1px solid rgba(0,198,224,.4); border-radius:14px; padding:18px 24px; text-align:left;">
+        <div style="position:relative; background:rgba(0,198,224,.08); border:1px solid rgba(0,198,224,.4); border-radius:14px; padding:18px 24px; text-align:left;">
+          <button class="copy-btn sm" type="button" data-copy="repo-url">Copy</button>
           <p style="font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 9px;">Workshop Materials</p>
-          <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:24px; font-weight:700; color:var(--white); margin:0 0 9px; word-break:break-all;">tinyurl.com/[ REPO ]</p>
+          <p id="repo-url" class="copyable" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:22px; font-weight:700; color:var(--white); margin:0 0 9px; word-break:break-all;">tinyurl.com/swtHoL2026</p>
           <p style="font-size:12.5px; color:var(--muted); margin:0; line-height:1.5;">Everything you need for today&rsquo;s session, yours to keep afterwards</p>
         </div>
         <div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:18px 24px; text-align:left;">
           <p style="font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--blue); font-weight:700; margin:0 0 9px;">Venue Wi-Fi</p>
-          <p style="font-size:15px; color:var(--muted); margin:0 0 7px;">Network &nbsp;<strong style="color:var(--white);">[ NETWORK ]</strong></p>
-          <p style="font-size:15px; color:var(--muted); margin:0;">Password &nbsp;<strong style="color:var(--white);">[ PASSWORD ]</strong></p>
+          <p style="font-size:17px; font-weight:600; color:var(--white); margin:0 0 8px;">Details are on your Badge</p>
+          <p style="font-size:12.5px; color:var(--muted); margin:0; line-height:1.5;">The one you received at registration</p>
         </div>
       </div>
     </div>
@@ -408,8 +416,8 @@
           <p style="font-size:13px; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.08em;">The situation</p>
           <ul class="cl">
             <li><span class="ic ic-arrow">▸</span> 300-person fintech company</li>
-            <li><span class="ic ic-arrow">▸</span> AWS us-east-1 · Payment data</li>
-            <li><span class="ic ic-arrow">▸</span> HIPAA + PCI compliance needs</li>
+            <li><span class="ic ic-arrow">▸</span> AWS ap-northeast-1 (Tokyo) · Payment data</li>
+            <li><span class="ic ic-arrow">▸</span> PCI-DSS + SOC 2 compliance needs</li>
             <li><span class="ic ic-arrow">▸</span> 3 teams · dev/staging/prod needed</li>
           </ul>
         </div>
@@ -543,8 +551,8 @@
       <div class="kicker a1">Type-along · Beat 2</div>
       <h2 class="a2" style="text-align:left; width:100%; max-width:var(--maxw);">Alex describes the company in plain English.</h2>
       <div class="copywrap a3">
-        <button class="copy-btn" id="copy-prompt" type="button">Copy</button>
-        <div class="codeblock" id="prompt-text">We're a 300-person fintech company on AWS us-east-1. We have a data
+        <button class="copy-btn" id="copy-prompt" type="button" data-copy="prompt-text">Copy</button>
+        <div class="codeblock" id="prompt-text">We're a 300-person fintech company on AWS ap-northeast-1. We have a data
 engineering team of 10, an analytics team of 15, and a data science
 team of 6.
 
@@ -552,28 +560,29 @@ We process payment data, so security is strict: MFA required for all
 users, SSO through Okta with SCIM provisioning, and network policies
 restricting access to our corporate IP range.
 
-We'll have dev, staging, and prod environments with separate roles for
-each and a consistent naming convention. Retention should be 30 days
-on prod and 1 day on dev and staging.
+We want one Snowflake account, with dev, staging and prod separated
+inside it by database and role, and a consistent naming convention.
+Retention should be 30 days on prod and 1 day on dev and staging.
 
 On cost: resource monitors to prevent runaway compute, an org-wide
 monthly budget with alerts, and cost allocation tags so we can
 attribute spend by team.
 
-Our org admin email is alex@fintechcorp.com and account is FINTECHCORP_PROD.</div>
+Our org admin email is alex@fintechcorp.com and account is FINTECHCORP.</div>
       </div>
       <div class="card a4" style="max-width:var(--maxw); margin-top:16px; padding:15px 22px; text-align:left; display:flex; flex-direction:column;">
         <p class="sec-lbl is-b">What this one prompt drives</p>
         <ul class="pmap">
           <li><code>MFA required for all users</code><span>Enforce MFA</span></li>
           <li><code>SSO through Okta with SCIM</code><span>SSO / SAML</span></li>
-          <li><code>separate roles for each</code><span>RBAC hierarchy</span></li>
+          <li><code>by database and role</code><span>RBAC hierarchy</span></li>
           <li><code>our corporate IP range</code><span>Network policies</span></li>
           <li><code>cost allocation tags</code><span>Object tagging</span></li>
           <li><code>resource monitors</code><span>Resource monitors</span></li>
           <li><code>an org-wide monthly budget</code><span>Org-wide budgets</span></li>
-          <li><code>dev, staging, and prod</code><span>Environment separation</span></li>
-          <li><code>30 days on prod, 1 day on dev</code><span>Storage retention</span></li>
+          <li><code>one Snowflake account</code><span>Single-account strategy</span></li>
+          <li><code>dev, staging and prod</code><span>Environment separation</span></li>
+          <li><code>30 days on prod</code><span>Storage retention</span></li>
         </ul>
         </div>
     </div>
@@ -649,11 +658,98 @@ ALTER ACCOUNT SET AUTHENTICATION POLICY fintechcorp_mfa_policy;</div>
     </div>
 
     <!-- ════════════════════════════════════════
-         10 · ALEX'S JOURNEY — RBAC
+         10 · ALEX'S JOURNEY — NETWORK SECURITY
     ════════════════════════════════════════ -->
     <div class="slide"
          data-act="Act III — Alex's Journey">
       <div class="kicker a1">Alex's journey · Step 2 of 5</div>
+      <h2 class="a2" style="text-align:left; width:100%; max-width:var(--maxw);">Network Security</h2>
+      <div class="bp-map a2"><span class="bp-lbl">From blueprint</span><span class="bp-task">Platform Foundation Setup &middot; Task 2 Security &amp; Identity</span><code>configure-network-rules-and-policies</code></div>
+      <div class="g2 a3" style="margin-top:12px;">
+        <div>
+          <h3>What got built</h3>
+          <ul class="cl" style="margin-top:10px;">
+            <li><span class="ic ic-check">✓</span> Network rule (IP allowlist structure)</li>
+            <li><span class="ic ic-check">✓</span> Network policy (blocks traffic from elsewhere)</li>
+            <li><span class="ic ic-check">✓</span> Applied at account level</li>
+            <li><span class="ic ic-check">✓</span> Egress rules for data transfers</li>
+          </ul>
+          <div class="codeblock" style="margin-top:16px; font-size:12px;">CREATE NETWORK RULE corp_ip_rule
+  TYPE = IPV4
+  MODE = INGRESS
+  VALUE_LIST = ('-- YOUR_CORP_CIDR --')
+  COMMENT = 'Corporate IP allowlist';
+
+CREATE NETWORK POLICY corp_network_policy
+  ALLOWED_NETWORK_RULE_LIST = ('corp_ip_rule');</div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:10px;">Architecture</h3>
+          <div class="mermaid" style="background:rgba(5,15,25,.55); border:1px solid rgba(41,181,232,.18); border-radius:10px; padding:12px;">flowchart LR
+  CORP["Corporate<br/>Network"] -->|"Allowed CIDR"| NR["Network Rule<br/>corp_ip_rule"]
+  VPN["VPN / Remote"] -->|"Allowed CIDR"| NR
+  NR --> NP["Network Policy<br/>corp_network_policy"]
+  NP -->|"ALTER ACCOUNT"| SF["Snowflake<br/>Account"]
+  EXT["Public Internet"] -->|"Blocked"| NP
+  SF --> DW["Warehouses<br/>and Data"]
+          </div>
+          <div class="card" style="margin-top:10px; border-color:rgba(255,159,67,.4); background:rgba(255,159,67,.05); padding:12px 16px;">
+            <p style="font-size:13px; color:var(--orange); font-weight:600; margin-bottom:6px;">Flagged — needs your input</p>
+            <ul class="cl">
+              <li><span class="ic ic-warn">○</span> Replace <code>YOUR_CORP_CIDR</code> with actual IP range</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         11 · ALEX'S JOURNEY — COST CONTROLS
+    ════════════════════════════════════════ -->
+    <div class="slide"
+         data-act="Act III — Alex's Journey">
+      <div class="kicker a1">Alex's journey · Step 3 of 5</div>
+      <h2 class="a2" style="text-align:left; width:100%; max-width:var(--maxw);">Cost Controls</h2>
+      <div class="bp-map a2"><span class="bp-lbl">From blueprint</span><span class="bp-task">Platform Foundation Setup &middot; Task 3 Cost Management</span><code>configure-resource-monitors</code><code>configure-spending-budgets</code></div>
+      <div class="g2 a3" style="margin-top:12px;">
+        <div class="card">
+          <h3 style="margin-bottom:12px;">Resource Monitors</h3>
+          <p style="color:var(--muted); font-size:14px; margin-bottom:12px;">Per-warehouse credit caps. A hard ceiling on a runaway query.</p>
+          <ul class="cl">
+            <li><span class="ic ic-check">✓</span> Credit quota per warehouse</li>
+            <li><span class="ic ic-check">✓</span> Suspend at 90% · notify at 75%</li>
+            <li><span class="ic ic-check">✓</span> Email alerts to Alex</li>
+            <li><span class="ic ic-check">✓</span> Per-environment monitors</li>
+          </ul>
+          <div style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.06);">
+            <span class="pill p-blue">Snowsight → Admin → Resource Monitors</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:12px;">Budgets</h3>
+          <p style="color:var(--muted); font-size:14px; margin-bottom:12px;">Org-wide dollar spend tracking. Alerts arrive before the invoice does.</p>
+          <ul class="cl">
+            <li><span class="ic ic-check">✓</span> Spending limit with notification</li>
+            <li><span class="ic ic-check">✓</span> Covers all Snowflake services</li>
+            <li><span class="ic ic-check">✓</span> Monthly reset cycle</li>
+            <li><span class="ic ic-warn">○</span> Dollar amount <span style="color:var(--orange); font-size:12px;">(flagged — needs input)</span></li>
+          </ul>
+          <div style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.06);">
+            <span class="pill p-blue">Snowsight → Admin → Budgets</span>
+          </div>
+        </div>
+      </div>
+      <div class="bubble a4" style="margin-top:20px; font-size:14px; padding:14px 20px;">
+        It added resource monitors without being asked. I wrote "prevent runaway compute costs" and it knew what that required.
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         12 · ALEX'S JOURNEY — RBAC (next blueprint)
+    ════════════════════════════════════════ -->
+    <div class="slide"
+         data-act="Act III — Alex's Journey">
+      <div class="kicker a1">Alex's journey · Step 4 of 5</div>
       <h2 class="a2" style="text-align:left; width:100%; max-width:var(--maxw);">RBAC Role Hierarchy</h2>
       <div class="bp-map a2"><span class="bp-lbl">From blueprint</span><span class="bp-task">Data Product Setup &middot; roles and environments</span><code>create-data-product-core-roles</code><code>create-warehouse-access-roles</code><code>grant-database-access-to-roles</code></div>
       <div class="row a3" style="align-items:flex-start; gap:32px; margin-top:8px;">
@@ -692,94 +788,6 @@ ALTER ACCOUNT SET AUTHENTICATION POLICY fintechcorp_mfa_policy;</div>
     </div>
 
     <!-- ════════════════════════════════════════
-         11 · ALEX'S JOURNEY — NETWORK SECURITY
-    ════════════════════════════════════════ -->
-    <div class="slide"
-         data-act="Act III — Alex's Journey">
-      <div class="kicker a1">Alex's journey · Step 3 of 5</div>
-      <h2 class="a2" style="text-align:left; width:100%; max-width:var(--maxw);">Network Security</h2>
-      <div class="bp-map a2"><span class="bp-lbl">From blueprint</span><span class="bp-task">Platform Foundation Setup &middot; Task 2 Security &amp; Identity</span><code>configure-network-rules-and-policies</code></div>
-      <div class="g2 a3" style="margin-top:12px;">
-        <div>
-          <h3>What got built</h3>
-          <ul class="cl" style="margin-top:10px;">
-            <li><span class="ic ic-check">✓</span> Network rule (IP allowlist structure)</li>
-            <li><span class="ic ic-check">✓</span> Network policy (blocks traffic from elsewhere)</li>
-            <li><span class="ic ic-check">✓</span> Applied at account level</li>
-            <li><span class="ic ic-check">✓</span> Egress rules for data transfers</li>
-          </ul>
-          <div class="codeblock" style="margin-top:16px; font-size:12px;">CREATE NETWORK RULE corp_ip_rule
-  TYPE = IPV4
-  MODE = INGRESS
-  VALUE_LIST = ('-- YOUR_CORP_CIDR --')
-  COMMENT = 'Corporate IP allowlist';
-
-CREATE NETWORK POLICY corp_network_policy
-  ALLOWED_NETWORK_RULE_LIST = ('corp_ip_rule');</div>
-        </div>
-        <div>
-          <h3 style="margin-bottom:10px;">Architecture</h3>
-          <div class="mermaid" style="background:rgba(5,15,25,.55); border:1px solid rgba(41,181,232,.18); border-radius:10px; padding:12px;">flowchart LR
-  CORP["Corporate<br/>Network"] -->|"Allowed CIDR"| NR["Network Rule<br/>corp_ip_rule"]
-  VPN["VPN / Remote"] -->|"Allowed CIDR"| NR
-  NR --> NP["Network Policy<br/>corp_network_policy"]
-  NP -->|"ALTER ACCOUNT"| SF["Snowflake<br/>Account"]
-  EXT["Public Internet"] -->|"Blocked"| NP
-  SF --> DW["Warehouses<br/>and Data"]
-          </div>
-          <div class="card" style="margin-top:10px; border-color:rgba(255,159,67,.4); background:rgba(255,159,67,.05); padding:12px 16px;">
-            <p style="font-size:13px; color:var(--orange); font-weight:600; margin-bottom:6px;">Flagged — needs your input</p>
-            <ul class="cl">
-              <li><span class="ic ic-warn">○</span> Replace <code>YOUR_CORP_CIDR</code> with actual IP range</li>
-              <li><span class="ic ic-warn">○</span> Test against a non-admin session first</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
-         12 · ALEX'S JOURNEY — COST CONTROLS
-    ════════════════════════════════════════ -->
-    <div class="slide"
-         data-act="Act III — Alex's Journey">
-      <div class="kicker a1">Alex's journey · Step 4 of 5</div>
-      <h2 class="a2" style="text-align:left; width:100%; max-width:var(--maxw);">Cost Controls</h2>
-      <div class="bp-map a2"><span class="bp-lbl">From blueprint</span><span class="bp-task">Platform Foundation Setup &middot; Task 3 Cost Management</span><code>configure-resource-monitors</code><code>configure-spending-budgets</code></div>
-      <div class="g2 a3" style="margin-top:12px;">
-        <div class="card">
-          <h3 style="margin-bottom:12px;">Resource Monitors</h3>
-          <p style="color:var(--muted); font-size:14px; margin-bottom:12px;">Per-warehouse credit caps. A hard ceiling on a runaway query.</p>
-          <ul class="cl">
-            <li><span class="ic ic-check">✓</span> Credit quota per warehouse</li>
-            <li><span class="ic ic-check">✓</span> Suspend at 90% · notify at 75%</li>
-            <li><span class="ic ic-check">✓</span> Email alerts to Alex</li>
-            <li><span class="ic ic-check">✓</span> Per-environment monitors</li>
-          </ul>
-          <div style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.06);">
-            <span class="pill p-blue">Snowsight → Admin → Resource Monitors</span>
-          </div>
-        </div>
-        <div class="card">
-          <h3 style="margin-bottom:12px;">Budgets</h3>
-          <p style="color:var(--muted); font-size:14px; margin-bottom:12px;">Org-wide dollar spend tracking. Alerts arrive before the invoice does.</p>
-          <ul class="cl">
-            <li><span class="ic ic-check">✓</span> Spending limit with notification</li>
-            <li><span class="ic ic-check">✓</span> Covers all Snowflake services</li>
-            <li><span class="ic ic-check">✓</span> Monthly reset cycle</li>
-            <li><span class="ic ic-warn">○</span> Dollar amount <span style="color:var(--orange); font-size:12px;">(flagged — needs input)</span></li>
-          </ul>
-          <div style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.06);">
-            <span class="pill p-blue">Snowsight → Admin → Budgets</span>
-          </div>
-        </div>
-      </div>
-      <div class="bubble a4" style="margin-top:20px; font-size:14px; padding:14px 20px;">
-        It added resource monitors without being asked. I wrote "prevent runaway compute costs" and it knew what that required.
-      </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
          13 · ONGOING MONITORING — COST & SECURITY
     ════════════════════════════════════════ -->
     <div class="slide"
@@ -788,40 +796,18 @@ CREATE NETWORK POLICY corp_network_policy
       <h2 class="a2" style="text-align:left; width:100%; max-width:var(--maxw); font-size:clamp(24px,3vw,42px); margin-bottom:10px;">Ongoing Monitoring &mdash; Cost and Security</h2>
       <div class="bp-map a2 out"><span class="bp-lbl">Outside the blueprint</span><span class="bp-task">Ongoing operations rather than a configuration step</span><code>Admin &rarr; Budgets</code><code>Admin &rarr; Trust Center</code></div>
       <p class="a2" style="color:var(--muted); font-size:14px; text-align:left; width:100%; max-width:var(--maxw); margin-bottom:16px;">Configuration is done. Two things Alex watches from here: what the platform spends on AI, and whether it stays configured the way she left it.</p>
-      <div class="g2 a3" style="gap:18px; align-items:stretch;">
-
-        <div class="card card-stack" style="padding:20px 24px; border-color:rgba(40,199,111,.28);">
-          <div class="card-head"><span class="ci">&#128179;</span><h3 style="color:var(--green);">Cost &mdash; AI spend</h3></div>
-          <p class="sec-lbl is-g">Proactive &middot; prevent the spend</p>
-          <ul class="dl">
-            <li><span class="ic ic-check">&#10003;</span><span><b>Shared resource budgets</b> &mdash; AI credits split by team or cost centre, users grouped by tag. Covers AI Functions, Agents, Cortex Code and CoWork.</span></li>
-            <li><span class="ic ic-check">&#10003;</span><span><b>Resource budgets</b> &mdash; a monthly credit limit on a tagged Cortex Agent, CoWork or Cortex Search object</span></li>
-            <li><span class="ic ic-check">&#10003;</span><span><b>Credit usage limits</b> &mdash; on Cortex Code, both CLI and Snowsight</span></li>
-            <li><span class="ic ic-check">&#10003;</span><span><b>Per-user quotas</b> &mdash; grant <code>CORTEX_USER</code> only through a controlled role, revoke on breach, restore monthly</span></li>
-          </ul>
-          <p class="sec-lbl is-o" style="margin-top:13px;">Reactive &middot; catch it in flight</p>
-          <ul class="dl">
-            <li><span class="ic ic-arrow">&#9656;</span><span>Account spend alert on <code>CORTEX_AI_FUNCTIONS_USAGE_HISTORY</code></span></li>
-            <li><span class="ic ic-arrow">&#9656;</span><span>Runaway query detection, then <code>SYSTEM$CANCEL_QUERY</code></span></li>
-          </ul>
-          <p class="card-note">Budget actions apply within eight hours, or two with the latency-optimised option. Cancelling halts further spend &mdash; it does not refund what is already used.</p>
+      <div class="g2 a3 tap-layer" style="gap:18px; max-width:var(--maxw); margin-top:4px;">
+        <div class="card-hi tappable" data-modal="m-cost" role="button" tabindex="0" style="text-align:center; padding:28px 24px; border-color:rgba(40,199,111,.28);">
+          <div style="font-size:40px; margin-bottom:10px;">&#128179;</div>
+          <h3 style="color:var(--green);">Cost &mdash; AI spend</h3>
+          <p style="color:var(--muted); font-size:14px; margin-top:10px; line-height:1.6;">Budgets, credit limits and per-user quotas that cap AI spend before it happens &mdash; plus alerts to catch the outliers in flight.</p>
+          <span class="tap-hint">Click to expand</span>
         </div>
-
-        <div class="card card-stack" style="padding:20px 24px; border-color:rgba(41,181,232,.35);">
-          <div class="card-head"><span class="ci">&#128737;&#65039;</span><h3>Security &mdash; Trust Center</h3></div>
-          <p class="sec-lbl is-b">Scanner packages</p>
-          <ul class="dl">
-            <li><span class="ic ic-check">&#10003;</span><span><b>Security Essentials</b> &mdash; MFA gaps, over-privileged roles, missing policies</span></li>
-            <li><span class="ic ic-check">&#10003;</span><span><b>AI Security</b> &mdash; Cortex usage by user and team, and any AI workload outside the governance model</span></li>
-            <li><span class="ic ic-check">&#10003;</span><span><b>Threat Intelligence</b> &mdash; unusual COPY INTO, bulk exports, off-hours access</span></li>
-            <li><span class="ic ic-check">&#10003;</span><span><b>CIS Benchmarks</b> &mdash; account configuration measured against the standard</span></li>
-          </ul>
-          <p class="sec-lbl is-b" style="margin-top:13px;">What Alex does with it</p>
-          <ul class="dl">
-            <li><span class="ic ic-arrow">&#9656;</span><span>Every finding carries a severity and a remediation path</span></li>
-            <li><span class="ic ic-arrow">&#9656;</span><span>Scanners run on a schedule, so findings arrive without being asked for</span></li>
-          </ul>
-          <p class="card-note">This is the Monday-morning check. Configuration was a one-off; this is the part Alex keeps coming back to.</p>
+        <div class="card-hi tappable" data-modal="m-sec" role="button" tabindex="0" style="text-align:center; padding:28px 24px; border-color:rgba(41,181,232,.35);">
+          <div style="font-size:40px; margin-bottom:10px;">&#128737;&#65039;</div>
+          <h3>Security &mdash; Trust Center</h3>
+          <p style="color:var(--muted); font-size:14px; margin-top:10px; line-height:1.6;">Scheduled scanners that check the account still looks the way Alex left it, with a severity and a remediation path on every finding.</p>
+          <span class="tap-hint">Click to expand</span>
         </div>
       </div>
       <div class="card a4" style="width:100%; max-width:var(--maxw); margin-top:12px; padding:11px 20px; text-align:left;">
@@ -1035,6 +1021,60 @@ CREATE NETWORK POLICY corp_network_policy
         </div>
       </div>
       <p class="modal-foot">This session uses <strong style="color:var(--white);">Platform Foundation Setup</strong>, which reaches into the first four categories above.</p>
+    </div>
+
+    <div class="modal" id="m-cost">
+      <button class="modal-x" data-close="1" aria-label="Close">&times;</button>
+      <div class="modal-kicker">Ongoing operations</div>
+      <h3>Cost &mdash; AI spend</h3>
+      <p class="modal-lead">AI credits are consumed by AI Functions, Cortex Agents, Cortex Code and CoWork. Two ways to stay in front of it: cap the spend before it happens, and catch the outliers while they run.</p>
+      <div class="modal-grid">
+        <div class="modal-card">
+          <p class="modal-h">Proactive &mdash; prevent the spend</p>
+          <ul class="cl dfn">
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">Shared resource budgets</strong> &mdash; AI credits split by team or cost centre, users grouped by tag. Covers AI Functions, Agents, Cortex Code and CoWork.</span></li>
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">Resource budgets</strong> &mdash; a monthly credit limit on a tagged Cortex Agent, CoWork or Cortex Search object</span></li>
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">Credit usage limits</strong> &mdash; on Cortex Code, both CLI and Snowsight</span></li>
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">Per-user quotas</strong> &mdash; grant <code>CORTEX_USER</code> only through a controlled role, revoke on breach, restore monthly</span></li>
+          </ul>
+        </div>
+        <div class="modal-card">
+          <p class="modal-h">Reactive &mdash; catch it in flight</p>
+          <ul class="cl dfn">
+            <li><span class="ic ic-arrow">&#9656;</span><span class="txt">Account spend alert on <code>CORTEX_AI_FUNCTIONS_USAGE_HISTORY</code></span></li>
+            <li><span class="ic ic-arrow">&#9656;</span><span class="txt">Runaway query detection, then <code>SYSTEM$CANCEL_QUERY</code></span></li>
+          </ul>
+          <p style="font-size:13px; color:var(--muted); margin-top:14px; line-height:1.6;">Budget actions apply within eight hours, or two with the latency-optimised option. Cancelling halts further spend &mdash; it does not refund what is already used.</p>
+        </div>
+      </div>
+      <p class="modal-foot">Both live under <strong style="color:var(--white);">Snowsight &rarr; Admin &rarr; Budgets</strong>.</p>
+    </div>
+
+    <div class="modal" id="m-sec">
+      <button class="modal-x" data-close="1" aria-label="Close">&times;</button>
+      <div class="modal-kicker">Ongoing operations</div>
+      <h3>Security &mdash; Trust Center</h3>
+      <p class="modal-lead">Trust Center runs scanner packages against the account on a schedule and reports what drifted. Configuration was a one-off; this is the part Alex keeps coming back to.</p>
+      <div class="modal-grid">
+        <div class="modal-card">
+          <p class="modal-h">Scanner packages</p>
+          <ul class="cl dfn">
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">Security Essentials</strong> &mdash; MFA gaps, over-privileged roles, missing policies</span></li>
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">AI Security</strong> &mdash; Cortex usage by user and team, and any AI workload outside the governance model</span></li>
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">Threat Intelligence</strong> &mdash; unusual COPY INTO, bulk exports, off-hours access</span></li>
+            <li><span class="ic ic-check">&#10003;</span><span class="txt"><strong style="color:var(--white);">CIS Benchmarks</strong> &mdash; account configuration measured against the standard</span></li>
+          </ul>
+        </div>
+        <div class="modal-card">
+          <p class="modal-h">What Alex does with it</p>
+          <ul class="cl dfn">
+            <li><span class="ic ic-arrow">&#9656;</span><span class="txt">Every finding carries a severity and a remediation path</span></li>
+            <li><span class="ic ic-arrow">&#9656;</span><span class="txt">Scanners run on a schedule, so findings arrive without being asked for</span></li>
+          </ul>
+          <p style="font-size:13px; color:var(--muted); margin-top:14px; line-height:1.6;">This is the Monday-morning check &mdash; open the findings, work the highest severity first.</p>
+        </div>
+      </div>
+      <p class="modal-foot">Lives under <strong style="color:var(--white);">Snowsight &rarr; Admin &rarr; Trust Center</strong>.</p>
     </div>
 
   </div>
@@ -3183,50 +3223,55 @@ Expecting `+Ze.join(", ")+", got '"+(this.terminals_[Ne]||Ne)+"'":Dt="Parse erro
       }
     );
 
-    // ── Copyable prompt ────────────────────
-    const copyBtn = document.getElementById('copy-prompt');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const text = document.getElementById('prompt-text').textContent;
+    // ── Copy buttons ─────────────────────
+    // Any [data-copy="<id>"] button copies that element's text.
+    Array.prototype.forEach.call(
+      document.querySelectorAll('.copy-btn[data-copy]'),
+      function (btn) {
+        const target = document.getElementById(btn.getAttribute('data-copy'));
+        if (!target) return;
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const text = target.textContent;
 
-        function flash() {
-          copyBtn.textContent = 'Copied';
-          copyBtn.classList.add('done');
-          setTimeout(function () {
-            copyBtn.textContent = 'Copy';
-            copyBtn.classList.remove('done');
-          }, 1800);
-        }
-
-        // navigator.clipboard requires a secure context, which file:// is not
-        // guaranteed to be, so fall back to a hidden textarea + execCommand.
-        function fallback() {
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.setAttribute('readonly', '');
-          ta.style.position = 'fixed';
-          ta.style.top = '-1000px';
-          ta.style.userSelect = 'text';
-          ta.style.webkitUserSelect = 'text';
-          document.body.appendChild(ta);
-          ta.select();
-          try {
-            document.execCommand('copy');
-            flash();
-          } catch (err) {
-            console.error('Copy failed:', err);
+          function flash() {
+            btn.textContent = 'Copied';
+            btn.classList.add('done');
+            setTimeout(function () {
+              btn.textContent = 'Copy';
+              btn.classList.remove('done');
+            }, 1800);
           }
-          document.body.removeChild(ta);
-        }
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(flash, fallback);
-        } else {
-          fallback();
-        }
-      });
-    }
+          // navigator.clipboard requires a secure context, which file:// is not
+          // guaranteed to be, so fall back to a hidden textarea + execCommand.
+          function fallback() {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            ta.style.userSelect = 'text';
+            ta.style.webkitUserSelect = 'text';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              document.execCommand('copy');
+              flash();
+            } catch (err) {
+              console.error('Copy failed:', err);
+            }
+            document.body.removeChild(ta);
+          }
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(flash, fallback);
+          } else {
+            fallback();
+          }
+        });
+      }
+    );
 
     // ── Keyboard ───────────────────────────
     document.addEventListener('keydown', function(e) {
