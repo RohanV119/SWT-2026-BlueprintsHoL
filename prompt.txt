@@ -10,8 +10,9 @@ We want one Snowflake account, with dev, staging and prod separated
 inside it by database and role, and a consistent naming convention.
 Retention should be 30 days on prod and 1 day on dev and staging.
 
-On cost: resource monitors to prevent runaway compute, an org-wide
-monthly budget with alerts, and cost allocation tags so we can
-attribute spend by team.
+On cost: a 5,000 credit monthly budget with alerts to
+alex@fintechcorp.com, resource monitors that suspend warehouses at
+4,000 credits, and cost allocation tags so we can attribute spend
+by team.
 
 Our org admin email is alex@fintechcorp.com and account is FINTECHCORP.
