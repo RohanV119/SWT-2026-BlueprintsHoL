@@ -1,4 +1,4 @@
-We're a 300-person fintech company on AWS ap-northeast-1. We have a data
+We're a 300-person fintech company. We have a data
 engineering team of 10, an analytics team of 15, and a data science
 team of 6.
 
