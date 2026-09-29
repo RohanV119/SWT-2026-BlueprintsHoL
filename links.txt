@@ -1,0 +1,2 @@
+Blueprints Builder Skill - https://github.com/Snowflake-Labs/blueprint-manager
+Snowflake Well Architected Framework Skill - https://github.com/Snowflake-Labs/coco-skills/tree/main/skills/well-architected-framework-assessment
